@@ -39,7 +39,9 @@
   @[
     [[FBRoute POST:@"/timeouts"] respondWithTarget:self action:@selector(handleTimeouts:)],
     [[FBRoute POST:@"/wda/homescreen"].withoutSession respondWithTarget:self action:@selector(handleHomescreenCommand:)],
+    [[FBRoute POST:@"/wda/deactivateApp"].withoutSession respondWithTarget:self action:@selector(handleDeactivateAppCommand:)],
     [[FBRoute POST:@"/wda/deactivateApp"] respondWithTarget:self action:@selector(handleDeactivateAppCommand:)],
+    [[FBRoute POST:@"/wda/keyboard/dismiss"].withoutSession respondWithTarget:self action:@selector(handleDismissKeyboardCommand:)],
     [[FBRoute POST:@"/wda/keyboard/dismiss"] respondWithTarget:self action:@selector(handleDismissKeyboardCommand:)],
     [[FBRoute POST:@"/wda/lock"].withoutSession respondWithTarget:self action:@selector(handleLock:)],
     [[FBRoute POST:@"/wda/lock"] respondWithTarget:self action:@selector(handleLock:)],
@@ -47,6 +49,7 @@
     [[FBRoute POST:@"/wda/unlock"] respondWithTarget:self action:@selector(handleUnlock:)],
     [[FBRoute GET:@"/wda/locked"].withoutSession respondWithTarget:self action:@selector(handleIsLocked:)],
     [[FBRoute GET:@"/wda/locked"] respondWithTarget:self action:@selector(handleIsLocked:)],
+    [[FBRoute GET:@"/wda/screen"].withoutSession respondWithTarget:self action:@selector(handleGetScreen:)],
     [[FBRoute GET:@"/wda/screen"] respondWithTarget:self action:@selector(handleGetScreen:)],
     [[FBRoute GET:@"/wda/activeAppInfo"] respondWithTarget:self action:@selector(handleActiveAppInfo:)],
     [[FBRoute GET:@"/wda/activeAppInfo"].withoutSession respondWithTarget:self action:@selector(handleActiveAppInfo:)],
@@ -55,12 +58,18 @@
     [[FBRoute POST:@"/wda/getPasteboard"] respondWithTarget:self action:@selector(handleGetPasteboard:)],
     [[FBRoute GET:@"/wda/batteryInfo"] respondWithTarget:self action:@selector(handleGetBatteryInfo:)],
 #endif
+    [[FBRoute POST:@"/wda/pressButton"].withoutSession respondWithTarget:self action:@selector(handlePressButtonCommand:)],
     [[FBRoute POST:@"/wda/pressButton"] respondWithTarget:self action:@selector(handlePressButtonCommand:)],
+    [[FBRoute POST:@"/wda/performIoHidEvent"].withoutSession respondWithTarget:self action:@selector(handlePeformIOHIDEvent:)],
     [[FBRoute POST:@"/wda/performIoHidEvent"] respondWithTarget:self action:@selector(handlePeformIOHIDEvent:)],
+    [[FBRoute POST:@"/wda/expectNotification"].withoutSession respondWithTarget:self action:@selector(handleExpectNotification:)],
     [[FBRoute POST:@"/wda/expectNotification"] respondWithTarget:self action:@selector(handleExpectNotification:)],
+    [[FBRoute POST:@"/wda/siri/activate"].withoutSession respondWithTarget:self action:@selector(handleActivateSiri:)],
     [[FBRoute POST:@"/wda/siri/activate"] respondWithTarget:self action:@selector(handleActivateSiri:)],
     [[FBRoute POST:@"/wda/apps/launchUnattached"].withoutSession respondWithTarget:self action:@selector(handleLaunchUnattachedApp:)],
+    [[FBRoute GET:@"/wda/device/info"].withoutSession respondWithTarget:self action:@selector(handleGetDeviceInfo:)],
     [[FBRoute GET:@"/wda/device/info"] respondWithTarget:self action:@selector(handleGetDeviceInfo:)],
+    [[FBRoute POST:@"/wda/resetAppAuth"].withoutSession respondWithTarget:self action:@selector(handleResetAppAuth:)],
     [[FBRoute POST:@"/wda/resetAppAuth"] respondWithTarget:self action:@selector(handleResetAppAuth:)],
     [[FBRoute GET:@"/wda/device/info"].withoutSession respondWithTarget:self action:@selector(handleGetDeviceInfo:)],
     [[FBRoute POST:@"/wda/device/appearance"].withoutSession respondWithTarget:self action:@selector(handleSetDeviceAppearance:)],
@@ -88,7 +97,7 @@
   NSNumber *requestedDuration = request.arguments[@"duration"];
   NSTimeInterval duration = (requestedDuration ? requestedDuration.doubleValue : 3.);
   NSError *error;
-  if (![request.session.activeApplication fb_deactivateWithDuration:duration error:&error]) {
+  if (![request.session.activeApplication ?: FBApplication.fb_activeApplication fb_deactivateWithDuration:duration error:&error]) {
     return FBResponseWithUnknownError(error);
   }
   return FBResponseWithOK();
@@ -103,7 +112,7 @@
 + (id<FBResponsePayload>)handleDismissKeyboardCommand:(FBRouteRequest *)request
 {
   NSError *error;
-  BOOL isDismissed = [request.session.activeApplication fb_dismissKeyboardWithKeyNames:request.arguments[@"keyNames"]
+  BOOL isDismissed = [request.session.activeApplication ?: FBApplication.fb_activeApplication fb_dismissKeyboardWithKeyNames:request.arguments[@"keyNames"]
                                                                                  error:&error];
   return isDismissed
     ? FBResponseWithOK()
@@ -293,7 +302,7 @@
     NSString *errMsg = @"The 'resource' argument must be set to a valid resource identifier (numeric value). See https://developer.apple.com/documentation/xctest/xcuiprotectedresource?language=objc";
     return FBResponseWithStatus([FBCommandStatus invalidArgumentErrorWithMessage:errMsg traceback:nil]);
   }
-  [request.session.activeApplication resetAuthorizationStatusForResource:(XCUIProtectedResource)resource.longLongValue];
+  [request.session.activeApplication ?: FBApplication.fb_activeApplication resetAuthorizationStatusForResource:(XCUIProtectedResource)resource.longLongValue];
   return FBResponseWithOK();
 }
 

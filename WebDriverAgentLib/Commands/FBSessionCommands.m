@@ -39,10 +39,16 @@
   @[
     [[FBRoute POST:@"/url"] respondWithTarget:self action:@selector(handleOpenURL:)],
     [[FBRoute POST:@"/session"].withoutSession respondWithTarget:self action:@selector(handleCreateSession:)],
+    [[FBRoute POST:@"/wda/apps/launch"].withoutSession respondWithTarget:self action:@selector(handleSessionAppLaunch:)],
     [[FBRoute POST:@"/wda/apps/launch"] respondWithTarget:self action:@selector(handleSessionAppLaunch:)],
+    [[FBRoute POST:@"/wda/apps/activate"].withoutSession respondWithTarget:self action:@selector(handleSessionAppActivate:)],
     [[FBRoute POST:@"/wda/apps/activate"] respondWithTarget:self action:@selector(handleSessionAppActivate:)],
+    [[FBRoute POST:@"/wda/app/terminateCurrentApp"].withoutSession respondWithTarget:self action:@selector(handleAppTerminate:)],
+    [[FBRoute POST:@"/wda/apps/terminate"].withoutSession respondWithTarget:self action:@selector(handleSessionAppTerminate:)],
     [[FBRoute POST:@"/wda/apps/terminate"] respondWithTarget:self action:@selector(handleSessionAppTerminate:)],
+    [[FBRoute POST:@"/wda/apps/state"].withoutSession respondWithTarget:self action:@selector(handleSessionAppState:)],
     [[FBRoute POST:@"/wda/apps/state"] respondWithTarget:self action:@selector(handleSessionAppState:)],
+    [[FBRoute GET:@"/wda/apps/list"].withoutSession respondWithTarget:self action:@selector(handleGetActiveAppsList:)],
     [[FBRoute GET:@"/wda/apps/list"] respondWithTarget:self action:@selector(handleGetActiveAppsList:)],
     [[FBRoute GET:@""] respondWithTarget:self action:@selector(handleGetActiveSession:)],
     [[FBRoute DELETE:@""] respondWithTarget:self action:@selector(handleDeleteSession:)],
@@ -52,7 +58,9 @@
     [[FBRoute GET:@"/wda/healthcheck"].withoutSession respondWithTarget:self action:@selector(handleGetHealthCheck:)],
 
     // Settings endpoints
+    [[FBRoute GET:@"/appium/settings"].withoutSession respondWithTarget:self action:@selector(handleGetSettings:)],
     [[FBRoute GET:@"/appium/settings"] respondWithTarget:self action:@selector(handleGetSettings:)],
+    [[FBRoute POST:@"/appium/settings"].withoutSession respondWithTarget:self action:@selector(handleSetSettings:)],
     [[FBRoute POST:@"/appium/settings"] respondWithTarget:self action:@selector(handleSetSettings:)],
   ];
 }
@@ -181,6 +189,19 @@
 {
   [request.session activateApplicationWithBundleId:(id)request.arguments[@"bundleId"]];
   return FBResponseWithOK();
+}
+
+//handleAppTerminate
++ (id<FBResponsePayload>)handleAppTerminate:(FBRouteRequest *)request
+{
+  FBApplication *app = request.session.activeApplication ?: FBApplication.fb_activeApplication;
+
+  BOOL result = false;
+  if(![app.bundleID isEqualToString:@"com.apple.springboard"]){
+    [app terminate];
+    result = true;
+  }
+  return FBResponseWithObject(@(result));
 }
 
 + (id<FBResponsePayload>)handleSessionAppTerminate:(FBRouteRequest *)request

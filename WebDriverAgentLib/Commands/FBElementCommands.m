@@ -88,14 +88,20 @@
     [[FBRoute POST:@"/wda/element/:uuid/dragfromtoforduration"] respondWithTarget:self action:@selector(handleDrag:)],
     [[FBRoute POST:@"/wda/element/:uuid/pressAndDragWithVelocity"] respondWithTarget:self action:@selector(handlePressAndDragWithVelocity:)],
     [[FBRoute POST:@"/wda/element/:uuid/forceTouch"] respondWithTarget:self action:@selector(handleForceTouch:)],
+    [[FBRoute POST:@"/wda/dragfromtoforduration"].withoutSession respondWithTarget:self action:@selector(handleDragCoordinate:)],
     [[FBRoute POST:@"/wda/dragfromtoforduration"] respondWithTarget:self action:@selector(handleDragCoordinate:)],
+    [[FBRoute POST:@"/wda/pressAndDragWithVelocity"].withoutSession respondWithTarget:self action:@selector(handlePressAndDragCoordinateWithVelocity:)],
     [[FBRoute POST:@"/wda/pressAndDragWithVelocity"] respondWithTarget:self action:@selector(handlePressAndDragCoordinateWithVelocity:)],
     [[FBRoute POST:@"/wda/tap/:uuid"] respondWithTarget:self action:@selector(handleTap:)],
+    [[FBRoute POST:@"/wda/touchAndHold"].withoutSession respondWithTarget:self action:@selector(handleTouchAndHoldCoordinate:)],
     [[FBRoute POST:@"/wda/touchAndHold"] respondWithTarget:self action:@selector(handleTouchAndHoldCoordinate:)],
+    [[FBRoute POST:@"/wda/doubleTap"].withoutSession respondWithTarget:self action:@selector(handleDoubleTapCoordinate:)],
     [[FBRoute POST:@"/wda/doubleTap"] respondWithTarget:self action:@selector(handleDoubleTapCoordinate:)],
     [[FBRoute POST:@"/wda/pickerwheel/:uuid/select"] respondWithTarget:self action:@selector(handleWheelSelect:)],
+    [[FBRoute POST:@"/wda/forceTouch"].withoutSession respondWithTarget:self action:@selector(handleForceTouch:)],
     [[FBRoute POST:@"/wda/forceTouch"] respondWithTarget:self action:@selector(handleForceTouch:)],
 #endif
+    [[FBRoute POST:@"/wda/keys"].withoutSession respondWithTarget:self action:@selector(handleKeys:)],
     [[FBRoute POST:@"/wda/keys"] respondWithTarget:self action:@selector(handleKeys:)],
   ];
 }
@@ -262,7 +268,7 @@
   // returns wrong true/false after moving focus by key up/down, for example.
   // Thus, ensure the focus compares the status with `fb_focusedElement`.
   BOOL isFocused = NO;
-  XCUIElement *focusedElement = request.session.activeApplication.fb_focusedElement;
+  XCUIElement *focusedElement = (request.session.activeApplication ?: FBApplication.fb_activeApplication).fb_focusedElement;
   if (focusedElement != nil) {
     FBElementCache *elementCache = request.session.elementCache;
     BOOL useNativeCachingStrategy = request.session.useNativeCachingStrategy;
@@ -298,7 +304,7 @@
 {
   CGPoint doubleTapPoint = CGPointMake((CGFloat)[request.arguments[@"x"] doubleValue], (CGFloat)[request.arguments[@"y"] doubleValue]);
   XCUICoordinate *doubleTapCoordinate = [self.class gestureCoordinateWithCoordinate:doubleTapPoint
-                                                                        application:request.session.activeApplication];
+                                                                        application:(request.session.activeApplication ?: FBApplication.fb_activeApplication)];
   [doubleTapCoordinate doubleTap];
   return FBResponseWithOK();
 }
@@ -336,7 +342,7 @@
 {
   CGPoint touchPoint = CGPointMake((CGFloat)[request.arguments[@"x"] doubleValue], (CGFloat)[request.arguments[@"y"] doubleValue]);
   XCUICoordinate *pressCoordinate = [self.class gestureCoordinateWithCoordinate:touchPoint
-                                                                    application:request.session.activeApplication];
+                                                                    application:(request.session.activeApplication ?: FBApplication.fb_activeApplication)];
   [pressCoordinate pressForDuration:[request.arguments[@"duration"] doubleValue]];
   return FBResponseWithOK();
 }
@@ -499,7 +505,7 @@
     }
   } else {
     XCUICoordinate *tapCoordinate = [self.class gestureCoordinateWithCoordinate:tapPoint
-                                                                    application:request.session.activeApplication];
+                                                                    application:(request.session.activeApplication ?: FBApplication.fb_activeApplication)];
     [tapCoordinate tap];
   }
   return FBResponseWithOK();
@@ -557,7 +563,7 @@
 {
   NSString *textToType = [request.arguments[@"value"] componentsJoinedByString:@""];
   NSUInteger frequency = [request.arguments[@"frequency"] unsignedIntegerValue] ?: [FBConfiguration maxTypingFrequency];
-  if (![FBKeyboard waitUntilVisibleForApplication:request.session.activeApplication
+  if (![FBKeyboard waitUntilVisibleForApplication:(request.session.activeApplication ?: FBApplication.fb_activeApplication)
                                           timeout:1
                                             error:nil]) {
     [FBLogger log:@"The on-screen keyboard seems to not exist. Continuing with typing anyway"];

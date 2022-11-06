@@ -119,7 +119,7 @@ static id<FBResponsePayload> FBNoSuchElementErrorResponseForRequest(FBRouteReque
 
 + (id<FBResponsePayload>)handleGetActiveElement:(FBRouteRequest *)request
 {
-  XCUIElement *element = request.session.activeApplication.fb_activeElement;
+  XCUIElement *element = (request.session.activeApplication ?: FBApplication.fb_activeApplication).fb_activeElement;
   if (nil == element) {
     return FBNoSuchElementErrorResponseForRequest(request);
   }
@@ -129,7 +129,7 @@ static id<FBResponsePayload> FBNoSuchElementErrorResponseForRequest(FBRouteReque
 #if TARGET_OS_TV
 + (id<FBResponsePayload>)handleGetFocusedElement:(FBRouteRequest *)request
 {
-  XCUIElement *element = request.session.activeApplication.fb_focusedElement;
+  XCUIElement *element = (request.session.activeApplication ?: FBApplication.fb_activeApplication).fb_focusedElement;
   return element == nil
     ? FBNoSuchElementErrorResponseForRequest(request)
     : FBResponseWithCachedElement(element, request.session.elementCache, FBConfiguration.shouldUseCompactResponses);
