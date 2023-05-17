@@ -103,6 +103,8 @@
 #endif
     [[FBRoute POST:@"/wda/keys"].withoutSession respondWithTarget:self action:@selector(handleKeys:)],
     [[FBRoute POST:@"/wda/keys"] respondWithTarget:self action:@selector(handleKeys:)],
+    [[FBRoute POST:@"/wda/keyA"].withoutSession respondWithTarget:self action:@selector(handleKey:)],
+    [[FBRoute POST:@"/wda/keyAT"].withoutSession respondWithTarget:self action:@selector(handleKeyViaTemp:)],
   ];
 }
 
@@ -450,9 +452,9 @@
   CGPoint endPoint = CGPointMake((CGFloat)[request.arguments[@"toX"] doubleValue], (CGFloat)[request.arguments[@"toY"] doubleValue]);
   NSTimeInterval duration = [request.arguments[@"duration"] doubleValue];
   XCUICoordinate *endCoordinate = [self.class gestureCoordinateWithCoordinate:endPoint
-                                                                  application:session.activeApplication];
+                                                                  application:session.activeApplication?: FBApplication.fb_activeApplication];
   XCUICoordinate *startCoordinate = [self.class gestureCoordinateWithCoordinate:startPoint
-                                                                    application:session.activeApplication];
+                                                                    application:session.activeApplication?: FBApplication.fb_activeApplication];
   [startCoordinate pressForDuration:duration thenDragToCoordinate:endCoordinate];
   return FBResponseWithOK();
 }
@@ -467,9 +469,9 @@
   CGPoint endPoint = CGPointMake((CGFloat)(frame.origin.x + [request.arguments[@"toX"] doubleValue]), (CGFloat)(frame.origin.y + [request.arguments[@"toY"] doubleValue]));
   NSTimeInterval duration = [request.arguments[@"duration"] doubleValue];
   XCUICoordinate *endCoordinate = [self.class gestureCoordinateWithCoordinate:endPoint
-                                                                  application:session.activeApplication];
+                                                                  application:session.activeApplication?: FBApplication.fb_activeApplication];
   XCUICoordinate *startCoordinate = [self.class gestureCoordinateWithCoordinate:startPoint
-                                                                    application:session.activeApplication];
+                                                                    application:session.activeApplication?: FBApplication.fb_activeApplication];
   [startCoordinate pressForDuration:duration thenDragToCoordinate:endCoordinate];
   return FBResponseWithOK();
 }
@@ -562,6 +564,7 @@
 + (id<FBResponsePayload>)handleKeys:(FBRouteRequest *)request
 {
   NSString *textToType = [request.arguments[@"value"] componentsJoinedByString:@""];
+//  NSString *textToType = request.arguments[@"value"];
   NSUInteger frequency = [request.arguments[@"frequency"] unsignedIntegerValue] ?: [FBConfiguration maxTypingFrequency];
   if (![FBKeyboard waitUntilVisibleForApplication:(request.session.activeApplication ?: FBApplication.fb_activeApplication)
                                           timeout:1
@@ -575,6 +578,34 @@
   }
   return FBResponseWithOK();
 }
+  
++ (id<FBResponsePayload>)handleKey:(FBRouteRequest *)request
+  {
+    XCUIApplication *application = request.session.activeApplication?: FBApplication.fb_activeApplication;
+
+    NSString *keyToType = request.arguments[@"key"];
+
+    [application typeText: keyToType];
+    //FBElementCache *elementCache = request.session.elementCache;
+    //XCUIElement *element = [elementCache elementForUUID:(NSString *)request.parameters[@"uuid"]];
+    //[element typeKey:keyToType modifierFlags:XCUIKeyModifierShift];
+
+    return FBResponseWithOK();
+  }
+
+  + (id<FBResponsePayload>)handleKeyViaTemp:(FBRouteRequest *)request
+  {
+    XCUIApplication *application = request.session.tempApplication;
+
+    NSString *keyToType = request.arguments[@"key"];
+
+    [application typeText: keyToType];
+    //FBElementCache *elementCache = request.session.elementCache;
+    //XCUIElement *element = [elementCache elementForUUID:(NSString *)request.parameters[@"uuid"]];
+    //[element typeKey:keyToType modifierFlags:XCUIKeyModifierShift];
+
+    return FBResponseWithOK();
+  }
 
 + (id<FBResponsePayload>)handleGetWindowSize:(FBRouteRequest *)request
 {

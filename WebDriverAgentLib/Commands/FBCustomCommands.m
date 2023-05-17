@@ -130,7 +130,7 @@
 + (id<FBResponsePayload>)handleGetScreen:(FBRouteRequest *)request
 {
   FBSession *session = request.session;
-  CGSize statusBarSize = [FBScreen statusBarSizeForApplication:session.activeApplication];
+  CGSize statusBarSize = [FBScreen statusBarSizeForApplication:session.activeApplication?: FBApplication.fb_activeApplication];
   return FBResponseWithObject(
   @{
     @"statusBarSize": @{@"width": @(statusBarSize.width),

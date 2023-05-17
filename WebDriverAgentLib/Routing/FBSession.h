@@ -22,6 +22,8 @@ NS_ASSUME_NONNULL_BEGIN
 /*! Application tested during that session */
 @property (nonatomic, strong, readonly) FBApplication *activeApplication;
 
+@property (nonatomic) FBApplication *tempApplication;
+
 /*! Session's identifier */
 @property (nonatomic, copy, readonly) NSString *identifier;
 
@@ -50,6 +52,8 @@ NS_ASSUME_NONNULL_BEGIN
  @return session. Can return nil if session does not exists
  */
 + (nullable instancetype)sessionWithIdentifier:(NSString *)identifier;
+
++ (instancetype)init;
 
 /**
  Creates and saves new session for application

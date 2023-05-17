@@ -62,6 +62,8 @@
     [[FBRoute GET:@"/appium/settings"] respondWithTarget:self action:@selector(handleGetSettings:)],
     [[FBRoute POST:@"/appium/settings"].withoutSession respondWithTarget:self action:@selector(handleSetSettings:)],
     [[FBRoute POST:@"/appium/settings"] respondWithTarget:self action:@selector(handleSetSettings:)],
+    
+    [[FBRoute GET:@"/updateApplication"] respondWithTarget:self action:@selector(updateApplication:)],
   ];
 }
 
@@ -204,6 +206,12 @@
   return FBResponseWithObject(@(result));
 }
 
++ (id<FBResponsePayload>)updateApplication:(FBRouteRequest *)request
+{
+  request.session.tempApplication = request.session.activeApplication?: FBApplication.fb_activeApplication;
+  return FBResponseWithOK();
+}
+
 + (id<FBResponsePayload>)handleSessionAppTerminate:(FBRouteRequest *)request
 {
   BOOL result = [request.session terminateApplicationWithBundleId:(id)request.arguments[@"bundleId"]];
@@ -301,7 +309,7 @@
       FB_SETTING_ANIMATION_COOL_OFF_TIMEOUT: @([FBConfiguration animationCoolOffTimeout]),
       FB_SETTING_BOUND_ELEMENTS_BY_INDEX: @([FBConfiguration boundElementsByIndex]),
       FB_SETTING_REDUCE_MOTION: @([FBConfiguration reduceMotionEnabled]),
-      FB_SETTING_DEFAULT_ACTIVE_APPLICATION: request.session.defaultActiveApplication,
+      FB_SETTING_DEFAULT_ACTIVE_APPLICATION: request.session.defaultActiveApplication?: FBApplication.fb_activeApplication,
       FB_SETTING_ACTIVE_APP_DETECTION_POINT: FBActiveAppDetectionPoint.sharedInstance.stringCoordinates,
       FB_SETTING_INCLUDE_NON_MODAL_ELEMENTS: @([FBConfiguration includeNonModalElements]),
       FB_SETTING_ACCEPT_ALERT_BUTTON_SELECTOR: FBConfiguration.acceptAlertButtonSelector,
@@ -393,7 +401,7 @@
     [FBConfiguration setAnimationCoolOffTimeout:[[settings objectForKey:FB_SETTING_ANIMATION_COOL_OFF_TIMEOUT] doubleValue]];
   }
   if ([[settings objectForKey:FB_SETTING_DEFAULT_ALERT_ACTION] isKindOfClass:NSString.class]) {
-    request.session.defaultAlertAction = [settings[FB_SETTING_DEFAULT_ALERT_ACTION] lowercaseString];
+      request.session.defaultAlertAction = [settings[FB_SETTING_DEFAULT_ALERT_ACTION] lowercaseString];
   }
 
 #if !TARGET_OS_TV
@@ -433,7 +441,7 @@
 
 + (NSDictionary *)currentCapabilities
 {
-  FBApplication *application = [FBSession activeSession].activeApplication;
+  FBApplication *application = [FBSession activeSession].activeApplication?: FBApplication.fb_activeApplication;
   return
   @{
     @"device": ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) ? @"ipad" : @"iphone",

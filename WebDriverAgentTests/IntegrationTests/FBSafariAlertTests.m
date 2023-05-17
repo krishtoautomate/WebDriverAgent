@@ -38,7 +38,7 @@ static NSString *const SAFARI_BUNDLE_ID = @"com.apple.mobilesafari";
                       shouldWaitForQuiescence:nil
                                     arguments:nil
                                   environment:nil];
-  self.safariApp = self.session.activeApplication;
+  self.safariApp = self.session.activeApplication?: FBApplication.fb_activeApplication;
 }
 
 - (void)tearDown

@@ -96,6 +96,25 @@ static FBSession *_activeSession = nil;
   return _activeSession;
 }
 
++ (instancetype)init
+{
+  FBSession *session = [FBSession new];
+  session.alertsMonitor = nil;
+  session.defaultAlertAction = nil;
+  session.identifier = [[NSUUID UUID] UUIDString];
+  session.defaultActiveApplication = FBDefaultApplicationAuto;
+  //session.testedApplicationBundleId = nil;
+  //NSMutableDictionary *apps = [NSMutableDictionary dictionary];
+  //if (application) {
+  //  [apps setObject:application forKey:application.bundleID];
+  //  session.testedApplicationBundleId = application.bundleID;
+  //}
+  //session.applications = apps.copy;
+//  session.elementCache = [FBElementCache new];
+//  [FBSession markSessionActive:session];
+  return session;
+}
+
 + (instancetype)initWithApplication:(FBApplication *)application
 {
   FBSession *session = [FBSession new];
@@ -159,16 +178,16 @@ static FBSession *_activeSession = nil;
     ? nil
     : self.defaultActiveApplication;
   FBApplication *application = [FBApplication fb_activeApplicationWithDefaultBundleId:defaultBundleId];
-  FBApplication *testedApplication = nil;
-  if (self.testedApplicationBundleId && self.isTestedApplicationExpectedToRun) {
-    testedApplication = nil != application.bundleID && [application.bundleID isEqualToString:self.testedApplicationBundleId]
-      ? application
-      : [[FBApplication alloc] initWithBundleIdentifier:self.testedApplicationBundleId];
-  }
-  if (testedApplication && !testedApplication.running) {
-    NSString *description = [NSString stringWithFormat:@"The application under test with bundle id '%@' is not running, possibly crashed", self.testedApplicationBundleId];
-    [[NSException exceptionWithName:FBApplicationCrashedException reason:description userInfo:nil] raise];
-  }
+//  FBApplication *testedApplication = nil;
+//  if (self.testedApplicationBundleId && self.isTestedApplicationExpectedToRun) {
+//    testedApplication = nil != application.bundleID && [application.bundleID isEqualToString:self.testedApplicationBundleId]
+//      ? application
+//      : [[FBApplication alloc] initWithBundleIdentifier:self.testedApplicationBundleId];
+//  }
+//  if (testedApplication && !testedApplication.running) {
+//    NSString *description = [NSString stringWithFormat:@"The application under test with bundle id '%@' is not running, possibly crashed", self.testedApplicationBundleId];
+//    [[NSException exceptionWithName:FBApplicationCrashedException reason:description userInfo:nil] raise];
+//  }
   return application;
 }
 

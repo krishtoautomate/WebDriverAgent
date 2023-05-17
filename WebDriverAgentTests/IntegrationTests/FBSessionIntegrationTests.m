@@ -51,10 +51,10 @@ static NSString *const SETTINGS_BUNDLE_ID = @"com.apple.Preferences";
                       shouldWaitForQuiescence:nil
                                     arguments:nil
                                   environment:nil];
-  FBAssertWaitTillBecomesTrue([self.session.activeApplication.bundleID isEqualToString:SETTINGS_BUNDLE_ID]);
+  FBAssertWaitTillBecomesTrue([(self.session.activeApplication?: FBApplication.fb_activeApplication).bundleID isEqualToString:SETTINGS_BUNDLE_ID]);
   XCTAssertEqual([self.session applicationStateWithBundleId:SETTINGS_BUNDLE_ID], 4);
   [self.session activateApplicationWithBundleId:testedApp.bundleID];
-  FBAssertWaitTillBecomesTrue([self.session.activeApplication.bundleID isEqualToString: testedApp.bundleID]);
+  FBAssertWaitTillBecomesTrue([(self.session.activeApplication?: FBApplication.fb_activeApplication).bundleID isEqualToString: testedApp.bundleID]);
   XCTAssertEqual([self.session applicationStateWithBundleId:testedApp.bundleID], 4);
 }
 
@@ -65,14 +65,14 @@ static NSString *const SETTINGS_BUNDLE_ID = @"com.apple.Preferences";
                       shouldWaitForQuiescence:nil
                                     arguments:nil
                                   environment:nil];
-  FBAssertWaitTillBecomesTrue([self.session.activeApplication.bundleID isEqualToString:SETTINGS_BUNDLE_ID]);
+  FBAssertWaitTillBecomesTrue([(self.session.activeApplication?: FBApplication.fb_activeApplication).bundleID isEqualToString:SETTINGS_BUNDLE_ID]);
   XCTAssertTrue([self.session terminateApplicationWithBundleId:SETTINGS_BUNDLE_ID]);
-  FBAssertWaitTillBecomesTrue([systemApp.bundleID isEqualToString:self.session.activeApplication.bundleID]);
+  FBAssertWaitTillBecomesTrue([systemApp.bundleID isEqualToString:(self.session.activeApplication?: FBApplication.fb_activeApplication).bundleID]);
   [self.session launchApplicationWithBundleId:SETTINGS_BUNDLE_ID
                       shouldWaitForQuiescence:nil
                                     arguments:nil
                                   environment:nil];
-  FBAssertWaitTillBecomesTrue([self.session.activeApplication.bundleID isEqualToString:SETTINGS_BUNDLE_ID]);
+  FBAssertWaitTillBecomesTrue([(self.session.activeApplication?: FBApplication.fb_activeApplication).bundleID isEqualToString:SETTINGS_BUNDLE_ID]);
 }
 
 - (void)testMainAppCanBeReactivatedInScopeOfTheCurrentSession
@@ -82,7 +82,7 @@ static NSString *const SETTINGS_BUNDLE_ID = @"com.apple.Preferences";
                       shouldWaitForQuiescence:nil
                                     arguments:nil
                                   environment:nil];
-  FBAssertWaitTillBecomesTrue([self.session.activeApplication.bundleID isEqualToString:SETTINGS_BUNDLE_ID]);
+  FBAssertWaitTillBecomesTrue([(self.session.activeApplication?: FBApplication.fb_activeApplication).bundleID isEqualToString:SETTINGS_BUNDLE_ID]);
   [self.session activateApplicationWithBundleId:testedApp.bundleID];
   FBAssertWaitTillBecomesTrue([self.session.activeApplication.bundleID isEqualToString:testedApp.bundleID]);
 }
@@ -92,12 +92,12 @@ static NSString *const SETTINGS_BUNDLE_ID = @"com.apple.Preferences";
   FBApplication *systemApp = self.springboard;
   FBApplication *testedApp = [[FBApplication alloc] initWithBundleIdentifier:self.testedApplication.bundleID];
   [self.session terminateApplicationWithBundleId:testedApp.bundleID];
-  FBAssertWaitTillBecomesTrue([self.session.activeApplication.bundleID isEqualToString:systemApp.bundleID]);
+  FBAssertWaitTillBecomesTrue([(self.session.activeApplication?: FBApplication.fb_activeApplication).bundleID isEqualToString:systemApp.bundleID]);
   [self.session launchApplicationWithBundleId:testedApp.bundleID
                       shouldWaitForQuiescence:nil
                                     arguments:nil
                                   environment:nil];
-  FBAssertWaitTillBecomesTrue([self.session.activeApplication.bundleID isEqualToString:testedApp.bundleID]);
+  FBAssertWaitTillBecomesTrue([(self.session.activeApplication?: FBApplication.fb_activeApplication).bundleID isEqualToString:testedApp.bundleID]);
 }
 
 - (void)testLaunchUnattachedApp

@@ -54,7 +54,7 @@
   if (!value) {
     return FBResponseWithStatus([FBCommandStatus invalidArgumentErrorWithMessage:@"Missing 'value' parameter" traceback:nil]);
   }
-  FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication];
+  FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication?: FBApplication.fb_activeApplication];
   if (!alert.isPresent) {
     return FBResponseWithStatus([FBCommandStatus noAlertOpenErrorWithMessage:nil
                                                                    traceback:nil]);
@@ -119,7 +119,7 @@
 
 + (id<FBResponsePayload>)handleGetAlertButtonsCommand:(FBRouteRequest *)request {
   FBSession *session = request.session;
-  FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication];
+  FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication?: FBApplication.fb_activeApplication];
 
   if (!alert.isPresent) {
     return FBResponseWithStatus([FBCommandStatus noAlertOpenErrorWithMessage:nil
