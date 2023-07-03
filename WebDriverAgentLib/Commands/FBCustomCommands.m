@@ -37,7 +37,10 @@
 {
   return
   @[
-    [[FBRoute POST:@"/timeouts"] respondWithTarget:self action:@selector(handleTimeouts:)],
+    [[FBRoute POST:@"/timeouts"].withoutSession respondWithTarget:self
+                                            action:@selector(handleTimeouts:)],
+    [[FBRoute POST:@"/timeouts"] respondWithTarget:self
+                                            action:@selector(handleTimeouts:)],
     [[FBRoute POST:@"/wda/homescreen"].withoutSession respondWithTarget:self action:@selector(handleHomescreenCommand:)],
     [[FBRoute POST:@"/wda/deactivateApp"].withoutSession respondWithTarget:self action:@selector(handleDeactivateAppCommand:)],
     [[FBRoute POST:@"/wda/deactivateApp"] respondWithTarget:self action:@selector(handleDeactivateAppCommand:)],

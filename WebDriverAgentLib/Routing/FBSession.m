@@ -80,7 +80,7 @@ static FBSession *_activeSession = nil;
 + (void)markSessionActive:(FBSession *)session
 {
   if (_activeSession) {
-    [_activeSession kill];
+//    [_activeSession kill];
   }
   _activeSession = session;
 }
@@ -88,10 +88,10 @@ static FBSession *_activeSession = nil;
 + (instancetype)sessionWithIdentifier:(NSString *)identifier
 {
   if (!identifier) {
-    return nil;
+//    return nil;
   }
   if (![identifier isEqualToString:_activeSession.identifier]) {
-    return nil;
+//    return nil;
   }
   return _activeSession;
 }
@@ -149,7 +149,7 @@ static FBSession *_activeSession = nil;
 - (void)kill
 {
   if (nil == _activeSession) {
-    return;
+//    return;
   }
 
   if (nil != self.alertsMonitor) {
@@ -169,7 +169,7 @@ static FBSession *_activeSession = nil;
     }
   }
 
-  _activeSession = nil;
+//  _activeSession = nil;
 }
 
 - (FBApplication *)activeApplication

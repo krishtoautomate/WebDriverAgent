@@ -25,7 +25,7 @@
 #import "FBXCAXClientProxy.h"
 
 
-static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
+static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 1.0;
 
 @interface FBApplication ()
 @end
@@ -172,7 +172,7 @@ static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
             buildError:error];
   }
   return [[[[FBRunLoopSpinner new]
-            timeout:5]
+            timeout:1]
            timeoutErrorMessage:@"Timeout waiting until the home screen is visible"]
           spinUntilTrue:^BOOL{
     FBApplication *activeApp = self.fb_activeApplication;

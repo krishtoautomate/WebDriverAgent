@@ -314,7 +314,8 @@
       FB_SETTING_INCLUDE_NON_MODAL_ELEMENTS: @([FBConfiguration includeNonModalElements]),
       FB_SETTING_ACCEPT_ALERT_BUTTON_SELECTOR: FBConfiguration.acceptAlertButtonSelector,
       FB_SETTING_DISMISS_ALERT_BUTTON_SELECTOR: FBConfiguration.dismissAlertButtonSelector,
-      FB_SETTING_DEFAULT_ALERT_ACTION: request.session.defaultAlertAction ?: @"",
+      FB_SETTING_DEFAULT_ALERT_ACTION: request.session
+        .defaultAlertAction ?: @"",
 #if !TARGET_OS_TV
       FB_SETTING_SCREENSHOT_ORIENTATION: [FBConfiguration humanReadableScreenshotOrientation],
 #endif

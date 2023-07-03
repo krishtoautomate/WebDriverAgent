@@ -29,14 +29,14 @@ static NSString *const FBKeyboardPredictionKey = @"KeyboardPrediction";
 static NSString *const axSettingsClassName = @"AXSettings";
 
 static BOOL FBShouldUseTestManagerForVisibilityDetection = NO;
-static BOOL FBShouldUseSingletonTestManager = YES;
+static BOOL FBShouldUseSingletonTestManager = NO;//YES;
 static BOOL FBShouldUseCompactResponses = YES;
 static BOOL FBShouldTerminateApp = YES;
 static NSString *FBElementResponseAttributes = @"type,label";
 static NSUInteger FBMaxTypingFrequency = 60;
-static NSUInteger FBMjpegServerScreenshotQuality = 10;
+static NSUInteger FBMjpegServerScreenshotQuality = 1;//10;
 static NSUInteger FBMjpegServerFramerate = 10;
-static NSUInteger FBScreenshotQuality = 1;
+static NSUInteger FBScreenshotQuality = 0;//1;
 static NSUInteger FBMjpegScalingFactor = 100;
 static NSTimeInterval FBCustomSnapshotTimeout = 15.;
 static BOOL FBShouldUseFirstMatch = NO;
@@ -48,8 +48,8 @@ static NSString *FBAcceptAlertButtonSelector = @"";
 static NSString *FBDismissAlertButtonSelector = @"";
 NSString *const FBSnapshotMaxDepthKey = @"maxDepth";
 static NSMutableDictionary *FBSnapshotRequestParameters;
-static NSTimeInterval FBWaitForIdleTimeout = 10.;
-static NSTimeInterval FBAnimationCoolOffTimeout = 2.;
+static NSTimeInterval FBWaitForIdleTimeout = 0;//10.;
+static NSTimeInterval FBAnimationCoolOffTimeout = 0;//2.;
 
 #if !TARGET_OS_TV
 static UIInterfaceOrientation FBScreenshotOrientation = UIInterfaceOrientationUnknown;

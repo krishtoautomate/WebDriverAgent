@@ -17,7 +17,7 @@
 #import "FBXCTestDaemonsProxy.h"
 #import "XCTestManager_ManagerInterface-Protocol.h"
 
-static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 5.0;
+static const NSTimeInterval APP_STATE_CHANGE_TIMEOUT = 1.0;
 
 NSString *const FBApplicationMethodNotSupportedException = @"FBApplicationMethodNotSupportedException";
 

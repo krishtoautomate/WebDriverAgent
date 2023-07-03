@@ -64,7 +64,7 @@ static char XCUIAPPLICATIONPROCESS_SHOULD_WAIT_FOR_QUIESCENCE;
 {
   id result = objc_getAssociatedObject(self, &XCUIAPPLICATIONPROCESS_SHOULD_WAIT_FOR_QUIESCENCE);
   if (nil == result) {
-    return @(YES);
+    return @(NO);//@(YES);
   }
   return (NSNumber *)result;
 }
