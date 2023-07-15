@@ -42,6 +42,7 @@
   if (![application fb_performAppiumTouchActions:actions elementCache:request.session.elementCache error:&error]) {
     return FBResponseWithUnknownError(error);
   }
+  
   return FBResponseWithOK();
 }
 
