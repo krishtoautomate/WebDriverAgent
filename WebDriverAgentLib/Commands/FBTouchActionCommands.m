@@ -39,7 +39,7 @@
   XCUIApplication *application = request.session.activeApplication ?: FBApplication.fb_activeApplication;
   NSArray *actions = (NSArray *)request.arguments[@"actions"];
   NSError *error;
-  if (![application fb_performAppiumTouchActions:actions elementCache:request.session.elementCache error:&error]) {
+  if (![application fb_performAppiumTouchActions:actions elementCache:nil error:&error]) {
     return FBResponseWithUnknownError(error);
   }
   

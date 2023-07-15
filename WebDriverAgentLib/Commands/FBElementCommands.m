@@ -571,6 +571,7 @@
 //                                            error:nil]) {
 //    [FBLogger log:@"The on-screen keyboard seems to not exist. Continuing with typing anyway"];
 //  }
+  
   NSError *error;
   if (![FBKeyboard typeText:textToType frequency:frequency error:&error]) {
     return FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description
