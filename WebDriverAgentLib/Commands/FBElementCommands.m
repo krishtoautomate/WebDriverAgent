@@ -566,11 +566,11 @@
   NSString *textToType = [request.arguments[@"value"] componentsJoinedByString:@""];
 //  NSString *textToType = request.arguments[@"value"];
   NSUInteger frequency = [request.arguments[@"frequency"] unsignedIntegerValue] ?: [FBConfiguration maxTypingFrequency];
-  if (![FBKeyboard waitUntilVisibleForApplication:(request.session.activeApplication ?: FBApplication.fb_activeApplication)
-                                          timeout:1
-                                            error:nil]) {
-    [FBLogger log:@"The on-screen keyboard seems to not exist. Continuing with typing anyway"];
-  }
+//  if (![FBKeyboard waitUntilVisibleForApplication:(request.session.activeApplication ?: FBApplication.fb_activeApplication)
+//                                          timeout:1
+//                                            error:nil]) {
+//    [FBLogger log:@"The on-screen keyboard seems to not exist. Continuing with typing anyway"];
+//  }
   NSError *error;
   if (![FBKeyboard typeText:textToType frequency:frequency error:&error]) {
     return FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description
