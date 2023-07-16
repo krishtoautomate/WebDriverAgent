@@ -62,7 +62,7 @@
     [[FBRoute GET:@"/appium/settings"] respondWithTarget:self action:@selector(handleGetSettings:)],
     [[FBRoute POST:@"/appium/settings"].withoutSession respondWithTarget:self action:@selector(handleSetSettings:)],
     [[FBRoute POST:@"/appium/settings"] respondWithTarget:self action:@selector(handleSetSettings:)],
-    
+    [[FBRoute GET:@"/updateApplication"].withoutSession respondWithTarget:self action:@selector(updateApplication:)],
     [[FBRoute GET:@"/updateApplication"] respondWithTarget:self action:@selector(updateApplication:)],
   ];
 }
@@ -243,7 +243,7 @@
 + (id<FBResponsePayload>)handleGetStatus:(FBRouteRequest *)request
 {
   // For updatedWDABundleId capability by Appium
-  NSString *productBundleIdentifier = @"com.facebook.WebDriverAgentRunner";
+  NSString *productBundleIdentifier = @"RDSRunner";
   NSString *envproductBundleIdentifier = NSProcessInfo.processInfo.environment[@"WDA_PRODUCT_BUNDLE_IDENTIFIER"];
   if (envproductBundleIdentifier && [envproductBundleIdentifier length] != 0) {
     productBundleIdentifier = NSProcessInfo.processInfo.environment[@"WDA_PRODUCT_BUNDLE_IDENTIFIER"];
@@ -314,7 +314,7 @@
       FB_SETTING_INCLUDE_NON_MODAL_ELEMENTS: @([FBConfiguration includeNonModalElements]),
       FB_SETTING_ACCEPT_ALERT_BUTTON_SELECTOR: FBConfiguration.acceptAlertButtonSelector,
       FB_SETTING_DISMISS_ALERT_BUTTON_SELECTOR: FBConfiguration.dismissAlertButtonSelector,
-      FB_SETTING_DEFAULT_ALERT_ACTION: request.session
+      FB_SETTING_DEFAULT_ALERT_ACTION: request.session?:FBSession.init
         .defaultAlertAction ?: @"",
 #if !TARGET_OS_TV
       FB_SETTING_SCREENSHOT_ORIENTATION: [FBConfiguration humanReadableScreenshotOrientation],

@@ -54,11 +54,12 @@
     [[FBRoute GET:@"/wda/locked"] respondWithTarget:self action:@selector(handleIsLocked:)],
     [[FBRoute GET:@"/wda/screen"].withoutSession respondWithTarget:self action:@selector(handleGetScreen:)],
     [[FBRoute GET:@"/wda/screen"] respondWithTarget:self action:@selector(handleGetScreen:)],
-    [[FBRoute GET:@"/wda/activeAppInfo"] respondWithTarget:self action:@selector(handleActiveAppInfo:)],
     [[FBRoute GET:@"/wda/activeAppInfo"].withoutSession respondWithTarget:self action:@selector(handleActiveAppInfo:)],
+    [[FBRoute GET:@"/wda/activeAppInfo"] respondWithTarget:self action:@selector(handleActiveAppInfo:)],
 #if !TARGET_OS_TV // tvOS does not provide relevant APIs
     [[FBRoute POST:@"/wda/setPasteboard"] respondWithTarget:self action:@selector(handleSetPasteboard:)],
     [[FBRoute POST:@"/wda/getPasteboard"] respondWithTarget:self action:@selector(handleGetPasteboard:)],
+    [[FBRoute GET:@"/wda/batteryInfo"].withoutSession respondWithTarget:self action:@selector(handleGetBatteryInfo:)],
     [[FBRoute GET:@"/wda/batteryInfo"] respondWithTarget:self action:@selector(handleGetBatteryInfo:)],
 #endif
     [[FBRoute POST:@"/wda/pressButton"].withoutSession respondWithTarget:self action:@selector(handlePressButtonCommand:)],
@@ -132,7 +133,7 @@
 
 + (id<FBResponsePayload>)handleGetScreen:(FBRouteRequest *)request
 {
-  FBSession *session = request.session;
+  FBSession *session = request.session?:FBSession.init;//added;
   CGSize statusBarSize = [FBScreen statusBarSizeForApplication:session.activeApplication?: FBApplication.fb_activeApplication];
   return FBResponseWithObject(
   @{

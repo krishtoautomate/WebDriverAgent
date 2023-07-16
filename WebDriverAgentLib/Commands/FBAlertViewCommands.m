@@ -118,7 +118,7 @@
 }
 
 + (id<FBResponsePayload>)handleGetAlertButtonsCommand:(FBRouteRequest *)request {
-  FBSession *session = request.session;
+  FBSession *session = request.session?:FBSession.init;//added
   FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication?: FBApplication.fb_activeApplication];
 
   if (!alert.isPresent) {
