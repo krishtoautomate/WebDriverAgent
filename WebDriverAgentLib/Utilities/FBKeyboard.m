@@ -119,6 +119,7 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         typingQueue = dispatch_queue_create("com.example.typing", DISPATCH_QUEUE_SERIAL);
+        dispatch_set_target_queue(typingQueue, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0));
         typingQueueText = [NSMutableString string];
         
         typingTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
@@ -162,7 +163,7 @@
         }
     });
     
-    dispatch_semaphore_wait(typingSemaphore, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)));
+    dispatch_semaphore_wait(typingSemaphore, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)));
     
     if (didSucceed) {
         dispatch_sync(typingQueue, ^{
