@@ -23,6 +23,8 @@
 #import "FBUnknownCommands.h"
 #import "FBConfiguration.h"
 #import "FBLogger.h"
+#import "BLWebSocketsServer.h"
+#import "FBKeyboard.h"
 
 #import "XCUIDevice+FBHelpers.h"
 
@@ -73,6 +75,7 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
   self.exceptionHandler = [FBExceptionHandler new];
   [self startHTTPServer];
   [self initScreenshotsBroadcaster];
+  [self initWebsocketBroadcasterWithBlWebsocket];
 
   self.keepAlive = YES;
   NSRunLoop *runLoop = [NSRunLoop mainRunLoop];
@@ -128,6 +131,8 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
   if (![self.screenshotsBroadcaster startWithError:&error]) {
     [FBLogger logFmt:@"Cannot init screenshots broadcaster service on port %@. Original error: %@", @(FBConfiguration.mjpegServerPort), error.description];
     self.screenshotsBroadcaster = nil;
+  } else {
+    [FBLogger logFmt:@"init screenshots broadcaster service on port %@.", @(FBConfiguration.mjpegServerPort)];
   }
 }
 
@@ -138,6 +143,34 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
   }
 
   [self.screenshotsBroadcaster stop];
+}
+
+- (void)initWebsocketBroadcasterWithBlWebsocket
+{
+  //every request made by a client will trigger the execution of this block.
+  [[BLWebSocketsServer sharedInstance] setHandleRequestBlock:^NSData *(NSData *data) {
+    //simply echo what has been received
+    NSString *message = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    NSLog(@"Received message ::  %@", message);
+    NSError *error;
+    NSUInteger frequency = 60;
+    if (![FBKeyboard typeText:message frequency:frequency error:&error]) {
+       FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description traceback:nil]);
+      NSLog(@"Error in type text %@", error.description);
+    }
+    return data;
+  }];
+  //Start the server
+  [[BLWebSocketsServer sharedInstance] startListeningOnPort:9330 withProtocolName:@"my-protocol-name" andCompletionBlock:^(NSError *error) {
+      if (!error) {
+          NSLog(@"Server started");
+      }
+      else {
+          NSLog(@"%@", error);
+      }
+  }];
+  //Push a message to every connected clients
+  [[BLWebSocketsServer sharedInstance] pushToAll:[@"pushed message" dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (void)readMjpegSettingsFromEnv
