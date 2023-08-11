@@ -34,10 +34,17 @@
 static NSString *const FBServerURLBeginMarker = @"ServerURLHere->";
 static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
 
+/**
+ Enumerates the different client event types for WebDriverAgent.
+
+ - WDA_KEYS: Represents the "keys" event type.
+ - WDA_TOUCH_PERFORM: Represents the "touch perform" event type.
+ - WDA_PRESS_BUTTON: Represents the "press button" event type.
+ */
 typedef NS_ENUM(NSUInteger, ClientEvents) {
-  WDA_KEYS,
-  WDA_TOUCH_PERFORM,
-  WDA_PRESS_BUTTON,
+    WDA_KEYS,
+    WDA_TOUCH_PERFORM,
+    WDA_PRESS_BUTTON,
 };
 
 @interface FBHTTPConnection : RoutingConnection
@@ -78,9 +85,16 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
   return handlers.copy;
 }
 
-- (NSString*) clientEvent:(ClientEvents) whichEvent {
+/**
+ Returns the corresponding event name for a given client event type.
+
+ @param whichEvent The client event type.
+ @return The event name as a string.
+ */
+- (NSString *)clientEvent:(ClientEvents)whichEvent {
     NSString *result = nil;
-    switch(whichEvent) {
+    
+    switch (whichEvent) {
         case WDA_KEYS:
             result = @"WDA_KEYS";
             break;
@@ -92,9 +106,12 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
             break;
         default:
             result = @"unknown";
+            break;
     }
+    
     return result;
 }
+
 
 - (void)startServing
 {
@@ -171,80 +188,159 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
 
   [self.screenshotsBroadcaster stop];
 }
+/**
+ Executes the "wdaKeys" client event.
 
-- (BOOL)wdaKeys:(NSData *)data event:(NSString *)event eventData:(NSDictionary *)eventData {
-  NSString *textToType = [eventData[@"value"] componentsJoinedByString:@""];
-  NSUInteger frequency = [eventData[@"frequency"] unsignedIntegerValue] ?: [FBConfiguration maxTypingFrequency];
-  NSError *eventError;
-  if (![FBKeyboard typeText:textToType frequency:frequency error:&eventError]) {
-    return false;
-  }
-  return true;
-}
-
-- (BOOL)wdaTouchPerform:(NSData *)data eventData:(NSDictionary *)eventData {
-  XCUIApplication *application =  FBApplication.fb_activeApplication;
-  NSArray *actions = (NSArray *)eventData[@"actions"];
-  NSError *eventError;
-  if (![application fb_performAppiumTouchActions:actions elementCache:nil error:&eventError]) {
-    return false;
-  }
-  return true;
-}
-
-- (BOOL)wdaPressButton:(NSData *)data eventData:(NSDictionary *)eventData {
-  NSError *eventError;
-  if (![XCUIDevice.sharedDevice fb_pressButton:(id)eventData[@"name"]
-                                   forDuration:(NSNumber *)eventData[@"duration"]
-                                         error:&eventError]) {
-    return false;
-  }
-  return true;
-}
-
-- (void)initWebsocketBroadcasterWithBlWebsocket
-{
-  //every request made by a client will trigger the execution of this block.
-  [[BLWebSocketsServer sharedInstance] setHandleRequestBlock:^NSData *(NSData *data) {
-    //data received
-    NSError* error = nil;
-    BOOL success = false;
-    NSString *strISOLatin = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
-    NSData *dataUTF8 = [strISOLatin dataUsingEncoding:NSUTF8StringEncoding];
-    id dict = [NSJSONSerialization JSONObjectWithData:dataUTF8 options:0 error:&error];
-    NSMutableDictionary *mutableDictionary = [dict mutableCopy];
-    
-    if (dict != nil) {
-      NSString *event = dict[@"event"];
-      NSDictionary *eventData = dict[@"data"];
-      if ([event isEqualToString: [self clientEvent:(WDA_KEYS)]]) {
-        success = [self wdaKeys:data event:event eventData:eventData];
-      } else if ([event isEqualToString: [self clientEvent:(WDA_TOUCH_PERFORM)]]) {
-        success = [self wdaTouchPerform:data eventData:eventData];
-      } else if ([event isEqualToString: [self clientEvent:WDA_PRESS_BUTTON]]) {
-        success = [self wdaPressButton:data eventData:eventData];
-      }
+ @param eventData A dictionary containing event data.
+ @return YES if the event was successfully executed, NO otherwise.
+ */
+- (BOOL)wdaKeys:(NSDictionary *)eventData {
+    // Check for nil values
+    if (!eventData || !eventData[@"value"]) {
+        NSLog(@"Invalid eventData or value.");
+        return false;
     }
-    
-    if (success) {
-      [mutableDictionary setValue:@"success" forKey:@"status"];
-    } else {
-      [mutableDictionary setValue:@"fail" forKey:@"status"];
+
+    id valueObject = eventData[@"value"];
+    if (![valueObject isKindOfClass:[NSArray class]]) {
+        NSLog(@"'value' is not an array.");
+        return false;
     }
-    NSData *responseData = [NSKeyedArchiver archivedDataWithRootObject:mutableDictionary];
-    return data;
-  }];
-  //Start the server
-  [[BLWebSocketsServer sharedInstance] startListeningOnPort:9330 withProtocolName:@"my-protocol-name" andCompletionBlock:^(NSError *error) {
-      if (!error) {
-          NSLog(@"Server started");
-      }
-      else {
-          NSLog(@"%@", error);
-      }
-  }];
-  //Push a message to every connected clients
-  [[BLWebSocketsServer sharedInstance] pushToAll:[@"pushed message" dataUsingEncoding:NSUTF8StringEncoding]];
+
+    NSArray *valueArray = (NSArray *)valueObject;
+    NSString *textToType = [valueArray componentsJoinedByString:@""];
+    NSUInteger frequency = [eventData[@"frequency"] unsignedIntegerValue] ?: [FBConfiguration maxTypingFrequency];
+    NSError *eventError;
+
+    // Perform the typing action and handle errors
+    if (![FBKeyboard typeText:textToType frequency:frequency error:&eventError]) {
+        NSLog(@"Error typing text: %@", eventError);
+        return false;
+    }
+    return true;
+}
+
+/**
+ Executes the "wdaTouchPerform" client event.
+
+ @param eventData A dictionary containing event data.
+ @return YES if the event was successfully executed, NO otherwise.
+ */
+- (BOOL)wdaTouchPerform:(NSDictionary *)eventData {
+    // Check for nil values
+    if (!eventData || !eventData[@"actions"] || ![eventData[@"actions"] isKindOfClass:[NSArray class]]) {
+        NSLog(@"Invalid eventData or actions.");
+        return false;
+    }
+
+    XCUIApplication *application = FBApplication.fb_activeApplication;
+    NSArray *actions = eventData[@"actions"];
+    NSError *eventError;
+
+    // Perform the touch actions and handle errors
+    if (![application fb_performAppiumTouchActions:actions elementCache:nil error:&eventError]) {
+        NSLog(@"Error performing touch actions: %@", eventError);
+        return false;
+    }
+    return true;
+}
+
+/**
+ Executes the "wdaPressButton" client event.
+
+ @param eventData A dictionary containing event data.
+ @return YES if the event was successfully executed, NO otherwise.
+ */
+- (BOOL)wdaPressButton:(NSDictionary *)eventData {
+    // Check for nil values
+    if (!eventData || !eventData[@"name"]) {
+        NSLog(@"Invalid eventData or button name.");
+        return false;
+    }
+
+    id nameObject = eventData[@"name"];
+    if (![nameObject isKindOfClass:[NSString class]]) {
+        NSLog(@"'name' is not a string.");
+        return false;
+    }
+
+    NSError *eventError;
+
+    // Perform the button press action and handle errors
+    if (![XCUIDevice.sharedDevice fb_pressButton:(NSString *)nameObject
+                                     forDuration:eventData[@"duration"]
+                                           error:&eventError]) {
+        NSLog(@"Error pressing button: %@", eventError);
+        return false;
+    }
+    return true;
+}
+
+- (void)initWebsocketBroadcasterWithBlWebsocket {
+    // Every request made by a client will trigger the execution of this block.
+    [[BLWebSocketsServer sharedInstance] setHandleRequestBlock:^NSData *(NSData *data) {
+        // Data received
+        NSError *error = nil;
+        BOOL success = NO;
+
+        // Step 1: Convert NSData to NSString using ISO Latin-1 encoding
+        NSString *strISOLatin = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
+        
+        // Step 2: Convert NSString back to NSData using UTF-8 encoding
+        NSData *dataUTF8 = [strISOLatin dataUsingEncoding:NSUTF8StringEncoding];
+        
+        // Step 3: Deserialize the UTF-8 encoded NSData as JSON to create an NSDictionary
+        id dict = [NSJSONSerialization JSONObjectWithData:dataUTF8 options:0 error:&error];
+        NSMutableDictionary *mutableDictionary = [dict isKindOfClass:[NSDictionary class]] ? [dict mutableCopy] : nil;
+
+        if (error) {
+            NSLog(@"JSON Serialization Error: %@", error);
+        } else if (mutableDictionary) {
+            NSString *event = mutableDictionary[@"event"];
+            NSDictionary *eventData = mutableDictionary[@"data"];
+            
+            if (event && eventData) {
+                if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
+                    success = [self wdaKeys:eventData];
+                } else if ([event isEqualToString:[self clientEvent:(WDA_TOUCH_PERFORM)]]) {
+                    success = [self wdaTouchPerform:eventData];
+                } else if ([event isEqualToString:[self clientEvent:WDA_PRESS_BUTTON]]) {
+                  success = [self wdaPressButton:eventData];
+                }
+            } else {
+                NSLog(@"Event or eventData is nil.");
+            } 
+        } else {
+            NSLog(@"Unexpected JSON data structure.");
+        }
+
+        // Update response status based on success
+        NSString *status = success ? @"success" : @"fail";
+        [mutableDictionary setValue:status forKey:@"status"];
+
+        // Convert the updated dictionary back to NSData
+        NSData *responseData = nil;
+        if (mutableDictionary) {
+            responseData = [NSJSONSerialization dataWithJSONObject:mutableDictionary options:NSJSONWritingPrettyPrinted error:&error];
+            if (error) {
+                NSLog(@"JSON Serialization Error: %@", error);
+            }
+        }
+
+        return responseData;
+    }];
+
+    // Start the server
+    [[BLWebSocketsServer sharedInstance] startListeningOnPort:9330 withProtocolName:@"my-protocol-name" andCompletionBlock:^(NSError *error) {
+        if (!error) {
+            NSLog(@"Server started");
+        } else {
+            NSLog(@"%@", error);
+        }
+    }];
+
+    // Push a message to every connected client
+    [[BLWebSocketsServer sharedInstance] pushToAll:[@"pushed message" dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (void)readMjpegSettingsFromEnv
