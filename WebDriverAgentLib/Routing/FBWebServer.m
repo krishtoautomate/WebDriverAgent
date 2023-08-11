@@ -25,11 +25,20 @@
 #import "FBLogger.h"
 #import "BLWebSocketsServer.h"
 #import "FBKeyboard.h"
+#import "FBApplication.h"
 
 #import "XCUIDevice+FBHelpers.h"
+#import "XCUIApplication+FBTouchAction.h"
+
 
 static NSString *const FBServerURLBeginMarker = @"ServerURLHere->";
 static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
+
+typedef NS_ENUM(NSUInteger, ClientEvents) {
+  WDA_KEYS,
+  WDA_TOUCH_PERFORM,
+  WDA_PRESS_BUTTON,
+};
 
 @interface FBHTTPConnection : RoutingConnection
 @end
@@ -67,6 +76,24 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
     [handlers addObject:aClass];
   }
   return handlers.copy;
+}
+
+- (NSString*) clientEvent:(ClientEvents) whichEvent {
+    NSString *result = nil;
+    switch(whichEvent) {
+        case WDA_KEYS:
+            result = @"WDA_KEYS";
+            break;
+        case WDA_TOUCH_PERFORM:
+            result = @"WDA_TOUCH_PERFORM";
+            break;
+        case WDA_PRESS_BUTTON:
+            result = @"WDA_PRESS_BUTTON";
+            break;
+        default:
+            result = @"unknown";
+    }
+    return result;
 }
 
 - (void)startServing
@@ -145,19 +172,66 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
   [self.screenshotsBroadcaster stop];
 }
 
+- (BOOL)wdaKeys:(NSData *)data event:(NSString *)event eventData:(NSDictionary *)eventData {
+  NSString *textToType = [eventData[@"value"] componentsJoinedByString:@""];
+  NSUInteger frequency = [eventData[@"frequency"] unsignedIntegerValue] ?: [FBConfiguration maxTypingFrequency];
+  NSError *eventError;
+  if (![FBKeyboard typeText:textToType frequency:frequency error:&eventError]) {
+    return false;
+  }
+  return true;
+}
+
+- (BOOL)wdaTouchPerform:(NSData *)data eventData:(NSDictionary *)eventData {
+  XCUIApplication *application =  FBApplication.fb_activeApplication;
+  NSArray *actions = (NSArray *)eventData[@"actions"];
+  NSError *eventError;
+  if (![application fb_performAppiumTouchActions:actions elementCache:nil error:&eventError]) {
+    return false;
+  }
+  return true;
+}
+
+- (BOOL)wdaPressButton:(NSData *)data eventData:(NSDictionary *)eventData {
+  NSError *eventError;
+  if (![XCUIDevice.sharedDevice fb_pressButton:(id)eventData[@"name"]
+                                   forDuration:(NSNumber *)eventData[@"duration"]
+                                         error:&eventError]) {
+    return false;
+  }
+  return true;
+}
+
 - (void)initWebsocketBroadcasterWithBlWebsocket
 {
   //every request made by a client will trigger the execution of this block.
   [[BLWebSocketsServer sharedInstance] setHandleRequestBlock:^NSData *(NSData *data) {
-    //simply echo what has been received
-    NSString *message = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    NSLog(@"Received message ::  %@", message);
-    NSError *error;
-    NSUInteger frequency = 60;
-    if (![FBKeyboard typeText:message frequency:frequency error:&error]) {
-       FBResponseWithStatus([FBCommandStatus invalidElementStateErrorWithMessage:error.description traceback:nil]);
-      NSLog(@"Error in type text %@", error.description);
+    //data received
+    NSError* error = nil;
+    BOOL success = false;
+    NSString *strISOLatin = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
+    NSData *dataUTF8 = [strISOLatin dataUsingEncoding:NSUTF8StringEncoding];
+    id dict = [NSJSONSerialization JSONObjectWithData:dataUTF8 options:0 error:&error];
+    NSMutableDictionary *mutableDictionary = [dict mutableCopy];
+    
+    if (dict != nil) {
+      NSString *event = dict[@"event"];
+      NSDictionary *eventData = dict[@"data"];
+      if ([event isEqualToString: [self clientEvent:(WDA_KEYS)]]) {
+        success = [self wdaKeys:data event:event eventData:eventData];
+      } else if ([event isEqualToString: [self clientEvent:(WDA_TOUCH_PERFORM)]]) {
+        success = [self wdaTouchPerform:data eventData:eventData];
+      } else if ([event isEqualToString: [self clientEvent:WDA_PRESS_BUTTON]]) {
+        success = [self wdaPressButton:data eventData:eventData];
+      }
     }
+    
+    if (success) {
+      [mutableDictionary setValue:@"success" forKey:@"status"];
+    } else {
+      [mutableDictionary setValue:@"fail" forKey:@"status"];
+    }
+    NSData *responseData = [NSKeyedArchiver archivedDataWithRootObject:mutableDictionary];
     return data;
   }];
   //Start the server
