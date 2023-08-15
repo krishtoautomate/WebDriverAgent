@@ -276,71 +276,108 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
     return true;
 }
 
+/**
+ Initializes the WebSocket broadcaster with BLWebsocket and sets up request handling.
+ */
 - (void)initWebsocketBroadcasterWithBlWebsocket {
     // Every request made by a client will trigger the execution of this block.
     [[BLWebSocketsServer sharedInstance] setHandleRequestBlock:^NSData *(NSData *data) {
         // Data received
-        NSError *error = nil;
-        BOOL success = NO;
-
-        // Step 1: Convert NSData to NSString using ISO Latin-1 encoding
-        NSString *strISOLatin = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
-        
-        // Step 2: Convert NSString back to NSData using UTF-8 encoding
-        NSData *dataUTF8 = [strISOLatin dataUsingEncoding:NSUTF8StringEncoding];
-        
-        // Step 3: Deserialize the UTF-8 encoded NSData as JSON to create an NSDictionary
-        id dict = [NSJSONSerialization JSONObjectWithData:dataUTF8 options:0 error:&error];
-        NSMutableDictionary *mutableDictionary = [dict isKindOfClass:[NSDictionary class]] ? [dict mutableCopy] : nil;
-
-        if (error) {
-            NSLog(@"JSON Serialization Error: %@", error);
-        } else if (mutableDictionary) {
-            NSString *event = mutableDictionary[@"event"];
-            NSDictionary *eventData = mutableDictionary[@"data"];
+        return runOnMainQueueWithoutDeadlocking(^{
             
-            if (event && eventData) {
-                if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
-                    success = [self wdaKeys:eventData];
-                } else if ([event isEqualToString:[self clientEvent:(WDA_TOUCH_PERFORM)]]) {
-                    success = [self wdaTouchPerform:eventData];
-                } else if ([event isEqualToString:[self clientEvent:WDA_PRESS_BUTTON]]) {
-                  success = [self wdaPressButton:eventData];
-                }
-            } else {
-                NSLog(@"Event or eventData is nil.");
-            } 
-        } else {
-            NSLog(@"Unexpected JSON data structure.");
-        }
-
-        // Update response status based on success
-        NSString *status = success ? @"success" : @"fail";
-        [mutableDictionary setValue:status forKey:@"status"];
-
-        // Convert the updated dictionary back to NSData
-        NSData *responseData = nil;
-        if (mutableDictionary) {
-            responseData = [NSJSONSerialization dataWithJSONObject:mutableDictionary options:NSJSONWritingPrettyPrinted error:&error];
+            NSError *error = nil;
+            BOOL success = NO;
+            
+            // Step 1: Convert NSData to NSString using ISO Latin-1 encoding
+            NSString *strISOLatin = [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding];
+            
+            // Step 2: Convert NSString back to NSData using UTF-8 encoding
+            NSData *dataUTF8 = [strISOLatin dataUsingEncoding:NSUTF8StringEncoding];
+            
+            // Step 3: Deserialize the UTF-8 encoded NSData as JSON to create an NSDictionary
+            id dict = [NSJSONSerialization JSONObjectWithData:dataUTF8 options:0 error:&error];
+            NSMutableDictionary *mutableDictionary = [dict isKindOfClass:[NSDictionary class]] ? [dict mutableCopy] : nil;
+            
             if (error) {
                 NSLog(@"JSON Serialization Error: %@", error);
+            } else if (mutableDictionary) {
+                NSString *event = mutableDictionary[@"event"];
+                NSDictionary *eventData = mutableDictionary[@"data"];
+                
+                if (event && eventData) {
+                    if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
+                        success = [self wdaKeys:eventData];
+                    } else if ([event isEqualToString:[self clientEvent:(WDA_TOUCH_PERFORM)]]) {
+                        success = [self wdaTouchPerform:eventData];
+                    } else if ([event isEqualToString:[self clientEvent:WDA_PRESS_BUTTON]]) {
+                        success = [self wdaPressButton:eventData];
+                    }
+                } else {
+                    NSLog(@"Event or eventData is nil.");
+                }
+            } else {
+                NSLog(@"Unexpected JSON data structure.");
             }
-        }
-
-        return responseData;
+            
+            // Update response status based on success
+            NSString *status = success ? @"success" : @"fail";
+            [mutableDictionary setValue:status forKey:@"status"];
+            
+            // Convert the updated dictionary back to NSData
+            NSData *responseData = nil;
+            if (mutableDictionary) {
+                responseData = [NSJSONSerialization dataWithJSONObject:mutableDictionary options:NSJSONWritingPrettyPrinted error:&error];
+                if (error) {
+                    NSLog(@"JSON Serialization Error: %@", error);
+                }
+            }
+            
+            return responseData;
+        });
+        
     }];
-
+    
     // Start the server
-    [[BLWebSocketsServer sharedInstance] startListeningOnPort:9330 withProtocolName:@"my-protocol-name" andCompletionBlock:^(NSError *error) {
+    [[BLWebSocketsServer sharedInstance] startListeningOnPort:9330 withProtocolName:@"BLWebSocketProtocol" andCompletionBlock:^(NSError *error) {
         if (!error) {
             NSLog(@"Server started");
         } else {
             NSLog(@"%@", error);
         }
     }];
-
+    
     // Push a message to every connected client
     [[BLWebSocketsServer sharedInstance] pushToAll:[@"pushed message" dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
+/**
+ Executes a block on the main queue, ensuring it doesn't deadlock.
+ 
+ This function is designed to execute a block on the main queue, either immediately if the current
+ thread is already the main thread, or synchronously if called from a background thread. It helps
+ avoid deadlocks that can occur when synchronously dispatching to the main queue from a background thread.
+ 
+ @param block A block that returns an NSData object. This block will be executed on the main queue.
+ @return The NSData object returned by the executed block.
+ */
+NSData *runOnMainQueueWithoutDeadlocking(NSData *(^block)(void))
+{
+    if ([NSThread isMainThread])
+    {
+        // If already on the main thread, execute the block immediately
+        return block();
+    }
+    else
+    {
+        __block NSData *result = nil;
+        
+        // Synchronously dispatch the block to the main queue
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            result = block();
+        });
+        
+        return result;
+    }
 }
 
 - (void)readMjpegSettingsFromEnv
