@@ -203,10 +203,10 @@
   BOOL previousQuiescence = self.application.fb_shouldWaitForQuiescence;
   FBConfiguration.waitForIdleTimeout = timeout;
   if (!previousQuiescence) {
-    self.application.fb_shouldWaitForQuiescence = YES;
+    self.application.fb_shouldWaitForQuiescence = NO;//YES
   }
   [[[self.application applicationImpl] currentProcess]
-   waitForQuiescenceIncludingAnimationsIdle:YES];
+   waitForQuiescenceIncludingAnimationsIdle:NO];//YES
   if (previousQuiescence != self.application.fb_shouldWaitForQuiescence) {
     self.application.fb_shouldWaitForQuiescence = previousQuiescence;
   }

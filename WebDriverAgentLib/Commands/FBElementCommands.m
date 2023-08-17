@@ -106,8 +106,6 @@
 #endif
     [[FBRoute POST:@"/wda/keys"].withoutSession respondWithTarget:self action:@selector(handleKeys:)],
     [[FBRoute POST:@"/wda/keys"] respondWithTarget:self action:@selector(handleKeys:)],
-    [[FBRoute POST:@"/wda/keyA"].withoutSession respondWithTarget:self action:@selector(handleKey:)],
-    [[FBRoute POST:@"/wda/keyAT"].withoutSession respondWithTarget:self action:@selector(handleKeyViaTemp:)],
   ];
 }
 
@@ -566,7 +564,9 @@
 
 + (id<FBResponsePayload>)handleKeys:(FBRouteRequest *)request
 {
-  NSString *textToType = [request.arguments[@"value"] componentsJoinedByString:@""];
+//  NSString *textToType = [request.arguments[@"value"] componentsJoinedByString:@""];
+  NSString *textToType = [request.arguments[@"value"]?: request.arguments[@"text"] componentsJoinedByString:@""];
+  
 //  NSString *textToType = request.arguments[@"value"];
   NSUInteger frequency = [request.arguments[@"frequency"] unsignedIntegerValue] ?: [FBConfiguration maxTypingFrequency];
 //  if (![FBKeyboard waitUntilVisibleForApplication:(request.session.activeApplication ?: FBApplication.fb_activeApplication)
@@ -582,34 +582,6 @@
   }
   return FBResponseWithOK();
 }
-  
-+ (id<FBResponsePayload>)handleKey:(FBRouteRequest *)request
-  {
-    XCUIApplication *application = request.session.activeApplication?: FBApplication.fb_activeApplication;
-
-    NSString *keyToType = request.arguments[@"key"];
-
-    [application typeText: keyToType];
-    //FBElementCache *elementCache = request.session.elementCache;
-    //XCUIElement *element = [elementCache elementForUUID:(NSString *)request.parameters[@"uuid"]];
-    //[element typeKey:keyToType modifierFlags:XCUIKeyModifierShift];
-
-    return FBResponseWithOK();
-  }
-
-  + (id<FBResponsePayload>)handleKeyViaTemp:(FBRouteRequest *)request
-  {
-    XCUIApplication *application = request.session.tempApplication;
-
-    NSString *keyToType = request.arguments[@"key"];
-
-    [application typeText: keyToType];
-    //FBElementCache *elementCache = request.session.elementCache;
-    //XCUIElement *element = [elementCache elementForUUID:(NSString *)request.parameters[@"uuid"]];
-    //[element typeKey:keyToType modifierFlags:XCUIKeyModifierShift];
-
-    return FBResponseWithOK();
-  }
 
 + (id<FBResponsePayload>)handleGetWindowSize:(FBRouteRequest *)request
 {

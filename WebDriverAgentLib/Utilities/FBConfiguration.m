@@ -19,6 +19,7 @@
 #import "XCUIApplication+FBUIInterruptions.h"
 
 static NSUInteger const DefaultStartingPort = 8100;
+static NSUInteger const DefaultWebsocketPort = 7100;
 static NSUInteger const DefaultMjpegServerPort = 9100;
 static NSUInteger const DefaultPortRange = 100;
 
@@ -98,6 +99,23 @@ static UIInterfaceOrientation FBScreenshotOrientation = UIInterfaceOrientationUn
 + (void)enableScreenshots
 {
   [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DisableScreenshots"];
+}
+
+
++ (NSRange)bindingWsPortRange
+{
+  // 'WebDriverAgent --port 8080' can be passed via the arguments to the process
+  if (self.bindingPortRangeFromArguments.location != NSNotFound) {
+    return self.bindingPortRangeFromArguments;
+  }
+
+  // Existence of USE_PORT in the environment implies the port range is managed by the launching process.
+  if (NSProcessInfo.processInfo.environment[@"USE_WS_PORT"] &&
+      [NSProcessInfo.processInfo.environment[@"USE_WS_PORT"] length] > 0) {
+    return NSMakeRange([NSProcessInfo.processInfo.environment[@"USE_WS_PORT"] integerValue] , 1);
+  }
+
+  return NSMakeRange(DefaultWebsocketPort, DefaultPortRange);
 }
 
 + (NSRange)bindingPortRange

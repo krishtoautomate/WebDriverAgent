@@ -795,6 +795,10 @@
 		EEE3764A1D59FAE900ED88DD /* XCUIElement+FBWebDriverAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = EEE376481D59FAE900ED88DD /* XCUIElement+FBWebDriverAttributes.m */; };
 		EEE9B4721CD02B88009D2030 /* FBRunLoopSpinner.h in Headers */ = {isa = PBXBuildFile; fileRef = EEE9B4701CD02B88009D2030 /* FBRunLoopSpinner.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EEE9B4731CD02B88009D2030 /* FBRunLoopSpinner.m in Sources */ = {isa = PBXBuildFile; fileRef = EEE9B4711CD02B88009D2030 /* FBRunLoopSpinner.m */; };
+		F4B3B4AD2A7AA5070078291F /* WebSocketServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F4B3B4AC2A7AA5070078291F /* WebSocketServer.m */; };
+		F4B3B4AE2A7AA5070078291F /* WebSocketServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F4B3B4AC2A7AA5070078291F /* WebSocketServer.m */; };
+		F4B3B4AF2A7AA5BC0078291F /* WebSocketServer.h in Headers */ = {isa = PBXBuildFile; fileRef = F4B3B4AB2A7AA4CD0078291F /* WebSocketServer.h */; };
+		F4B3B4B02A7AA5C30078291F /* WebSocketServer.h in Headers */ = {isa = PBXBuildFile; fileRef = F4B3B4AB2A7AA4CD0078291F /* WebSocketServer.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1365,6 +1369,8 @@
 		EEE9B4701CD02B88009D2030 /* FBRunLoopSpinner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBRunLoopSpinner.h; sourceTree = "<group>"; };
 		EEE9B4711CD02B88009D2030 /* FBRunLoopSpinner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBRunLoopSpinner.m; sourceTree = "<group>"; };
 		EEF9882A1C486603005CA669 /* RDSRunner.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RDSRunner.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4B3B4AB2A7AA4CD0078291F /* WebSocketServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebSocketServer.h; sourceTree = SOURCE_ROOT; };
+		F4B3B4AC2A7AA5070078291F /* WebSocketServer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WebSocketServer.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1660,6 +1666,8 @@
 				E444DC91249131D40060D7EB /* HTTPMessage.m */,
 				E444DC8F249131D40060D7EB /* HTTPResponse.h */,
 				E444DC8B249131D30060D7EB /* HTTPServer.h */,
+				F4B3B4AB2A7AA4CD0078291F /* WebSocketServer.h */,
+				F4B3B4AC2A7AA5070078291F /* WebSocketServer.m */,
 				E444DC90249131D40060D7EB /* HTTPServer.m */,
 				E444DC55249131740060D7EB /* Responses */,
 				E444DC53249131640060D7EB /* Categories */,
@@ -2313,6 +2321,7 @@
 				13DE7A56287CA1EC003243C6 /* FBXCElementSnapshotWrapper.h in Headers */,
 				641EE6642240C5CA00173FCB /* NSPredicate+FBFormat.h in Headers */,
 				641EE6652240C5CA00173FCB /* UILongPressGestureRecognizer-RecordingAdditions.h in Headers */,
+				F4B3B4B02A7AA5C30078291F /* WebSocketServer.h in Headers */,
 				641EE6662240C5CA00173FCB /* XCTestCase.h in Headers */,
 				641EE6672240C5CA00173FCB /* XCSymbolicatorHolder.h in Headers */,
 				641EE6682240C5CA00173FCB /* XCUIApplicationImpl.h in Headers */,
@@ -2711,6 +2720,7 @@
 				EE35AD631E3B77D600A02D78 /* XCTTestRunSessionDelegate-Protocol.h in Headers */,
 				EE35AD431E3B77D600A02D78 /* XCTestCaseSuite.h in Headers */,
 				EE35AD091E3B77D600A02D78 /* _XCInternalTestRun.h in Headers */,
+				F4B3B4AF2A7AA5BC0078291F /* WebSocketServer.h in Headers */,
 				712A0C871DA3E55D007D02E5 /* FBXPath-Private.h in Headers */,
 				EE35AD321E3B77D600A02D78 /* XCKeyMappingPath.h in Headers */,
 			);
@@ -3132,6 +3142,7 @@
 				641EE6062240C5CA00173FCB /* FBOrientationCommands.m in Sources */,
 				641EE7092240CDEB00173FCB /* XCUIElement+FBTVFocuse.m in Sources */,
 				641EE6072240C5CA00173FCB /* XCUICoordinate+FBFix.m in Sources */,
+				F4B3B4AE2A7AA5070078291F /* WebSocketServer.m in Sources */,
 				641EE6082240C5CA00173FCB /* FBRuntimeUtils.m in Sources */,
 				641EE6092240C5CA00173FCB /* XCUIElement+FBUtilities.m in Sources */,
 				641EE60A2240C5CA00173FCB /* FBLogger.m in Sources */,
@@ -3282,6 +3293,7 @@
 				E444DC9C249131D40060D7EB /* HTTPServer.m in Sources */,
 				71414ED82670A1EE003A8C5D /* LRUCache.m in Sources */,
 				E444DC67249131890060D7EB /* HTTPDataResponse.m in Sources */,
+				F4B3B4AD2A7AA5070078291F /* WebSocketServer.m in Sources */,
 				EE158AD31CBD456F00A3E3F0 /* FBElementCache.m in Sources */,
 				71930C4320662E1F00D3AFEC /* FBPasteboard.m in Sources */,
 				AD6C26951CF2379700F8B5FF /* FBAlert.m in Sources */,

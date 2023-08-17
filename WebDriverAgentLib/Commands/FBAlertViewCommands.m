@@ -50,7 +50,8 @@
 + (id<FBResponsePayload>)handleAlertSetTextCommand:(FBRouteRequest *)request
 {
   FBSession *session = request.session;
-  id value = request.arguments[@"value"];
+  id value = request.arguments[@"value"] ?: request.arguments[@"text"];
+//  request.arguments[@"value"];
   if (!value) {
     return FBResponseWithStatus([FBCommandStatus invalidArgumentErrorWithMessage:@"Missing 'value' parameter" traceback:nil]);
   }

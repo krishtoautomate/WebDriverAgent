@@ -11,6 +11,7 @@
 
 #import "RoutingConnection.h"
 #import "RoutingHTTPServer.h"
+#import "WebSocketServer.h"
 
 #import "FBCommandHandler.h"
 #import "FBErrorBuilder.h"
@@ -71,6 +72,7 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
 {
   [FBLogger logFmt:@"Built at %s %s", __DATE__, __TIME__];
   self.exceptionHandler = [FBExceptionHandler new];
+//  [self startWSServer];
   [self startHTTPServer];
   [self initScreenshotsBroadcaster];
 
@@ -78,6 +80,41 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
   NSRunLoop *runLoop = [NSRunLoop mainRunLoop];
   while (self.keepAlive &&
          [runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]]);
+}
+
+- (void)startWSServer
+{
+  self.server = [[WebSocketServer alloc] init];
+  [self.server setRouteQueue:dispatch_get_main_queue()];
+  
+//  (void)setDefaultHeader:(NSString *)field value:(NSString *)value;
+  
+  [self.server setConnectionClass:[FBHTTPConnection self]];
+
+  [self registerRouteHandlers:[self.class collectCommandHandlerClasses]];
+  [self registerServerKeyRouteHandlers];
+
+  NSRange serverPortRange = FBConfiguration.bindingWsPortRange;
+  NSError *error;
+  BOOL serverStarted = NO;
+
+  for (NSUInteger index = 0; index < serverPortRange.length; index++) {
+    NSInteger port = serverPortRange.location + index;
+    [self.server setPort:(UInt16)port];
+
+    serverStarted = [self attemptToStartServer:self.server onPort:port withError:&error];
+    if (serverStarted) {
+      break;
+    }
+
+    [FBLogger logFmt:@"Failed to start web server on port %ld with error %@", (long)port, [error description]];
+  }
+
+  if (!serverStarted) {
+    [FBLogger logFmt:@"Last attempt to start web server failed with error %@", [error description]];
+    abort();
+  }
+  [FBLogger logFmt:@"%@http://%@:%d%@", FBServerURLBeginMarker, [XCUIDevice sharedDevice].fb_wifiIPAddress ?: @"localhost", [self.server port], FBServerURLEndMarker];
 }
 
 - (void)startHTTPServer
@@ -220,7 +257,11 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
 - (void)registerServerKeyRouteHandlers
 {
   [self.server get:@"/health" withBlock:^(RouteRequest *request, RouteResponse *response) {
-    [response respondWithString:@"I-AM-ALIVE"];
+//    [response respondWithString:@"I-AM-ALIVE"];
+    NSDictionary *jsonResponse = @{@"message": @"I-AM-ALIVE"};
+    NSData *responseData = [NSJSONSerialization dataWithJSONObject:jsonResponse options:0 error:nil];
+    [response setHeader:@"Content-Type" value:@"application/json"];
+    [response respondWithData:responseData];
   }];
 
   [self.server get:@"/wda/shutdown" withBlock:^(RouteRequest *request, RouteResponse *response) {

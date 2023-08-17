@@ -268,14 +268,14 @@
           @"name" : [[UIDevice currentDevice] systemName],
           @"version" : [[UIDevice currentDevice] systemVersion],
           @"sdkVersion": FBSDKVersion() ?: @"unknown",
-          @"testmanagerdVersion": @(FBTestmanagerdVersion()),
+//          @"testmanagerdVersion": @(FBTestmanagerdVersion()),
         },
       @"ios" :
         @{
 #if TARGET_OS_SIMULATOR
           @"simulatorVersion" : [[UIDevice currentDevice] systemVersion],
 #endif
-          @"ip" : [XCUIDevice sharedDevice].fb_wifiIPAddress ?: [NSNull null]
+          @"ip" : [XCUIDevice sharedDevice].fb_wifiIPAddress ?: @"localhost"
         },
       @"build" : buildInfo.copy
     }
