@@ -19,6 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface FBWebServer : NSObject
 
+//@property (nonatomic, strong) WebSocketServer *webSocketServer;
+
 /**
  Server delegate.
  */

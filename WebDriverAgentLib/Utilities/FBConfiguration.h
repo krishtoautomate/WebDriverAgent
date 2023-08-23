@@ -109,6 +109,8 @@ extern NSString *const FBSnapshotMaxDepthKey;
  */
 + (NSInteger)mjpegServerPort;
 
++ (NSInteger)wsServerPort;
+
 /**
  The scaling factor for frames of the mjpeg stream (Default values is 100 and does not perform scaling).
  */

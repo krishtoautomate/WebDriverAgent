@@ -101,23 +101,6 @@ static UIInterfaceOrientation FBScreenshotOrientation = UIInterfaceOrientationUn
   [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"DisableScreenshots"];
 }
 
-
-+ (NSRange)bindingWsPortRange
-{
-  // 'WebDriverAgent --port 8080' can be passed via the arguments to the process
-  if (self.bindingPortRangeFromArguments.location != NSNotFound) {
-    return self.bindingPortRangeFromArguments;
-  }
-
-  // Existence of USE_PORT in the environment implies the port range is managed by the launching process.
-  if (NSProcessInfo.processInfo.environment[@"USE_WS_PORT"] &&
-      [NSProcessInfo.processInfo.environment[@"USE_WS_PORT"] length] > 0) {
-    return NSMakeRange([NSProcessInfo.processInfo.environment[@"USE_WS_PORT"] integerValue] , 1);
-  }
-
-  return NSMakeRange(DefaultWebsocketPort, DefaultPortRange);
-}
-
 + (NSRange)bindingPortRange
 {
   // 'WebDriverAgent --port 8080' can be passed via the arguments to the process
@@ -132,6 +115,20 @@ static UIInterfaceOrientation FBScreenshotOrientation = UIInterfaceOrientationUn
   }
 
   return NSMakeRange(DefaultStartingPort, DefaultPortRange);
+}
+
++ (NSInteger)wsServerPort
+{
+  if (self.wsServerPortFromArguments != NSNotFound) {
+    return self.wsServerPortFromArguments;
+  }
+  
+  if (NSProcessInfo.processInfo.environment[@"WS_SERVER_PORT"] &&
+      [NSProcessInfo.processInfo.environment[@"WS_SERVER_PORT"] length] > 0) {
+    return [NSProcessInfo.processInfo.environment[@"WS_SERVER_PORT"] integerValue];
+  }
+
+  return DefaultWebsocketPort;
 }
 
 + (NSInteger)mjpegServerPort
@@ -536,6 +533,17 @@ static UIInterfaceOrientation FBScreenshotOrientation = UIInterfaceOrientationUn
 {
   NSString *portNumberString = [self valueFromArguments: NSProcessInfo.processInfo.arguments
                                                  forKey: @"--mjpeg-server-port"];
+  NSUInteger port = (NSUInteger)[portNumberString integerValue];
+  if (port == 0) {
+    return NSNotFound;
+  }
+  return port;
+}
+
++ (NSUInteger)wsServerPortFromArguments
+{
+  NSString *portNumberString = [self valueFromArguments: NSProcessInfo.processInfo.arguments
+                                                 forKey: @"--ws-server-port"];
   NSUInteger port = (NSUInteger)[portNumberString integerValue];
   if (port == 0) {
     return NSNotFound;

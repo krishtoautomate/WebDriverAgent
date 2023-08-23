@@ -1,4 +1,5 @@
 #import "WebSocketServer.h"
+#import <CommonCrypto/CommonDigest.h>
 
 @interface WebSocketServer () <GCDAsyncSocketDelegate>
 
@@ -40,7 +41,14 @@
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket {
     NSLog(@"New WebSocket connection from %@", [newSocket connectedHost]);
     [self.connectedClients addObject:newSocket];
-    [newSocket readDataWithTimeout:-1 tag:0]; // Start reading data from the socket
+
+    // Send a welcome message to the newly connected client
+    NSString *welcomeMessage = @"You are connected WDA WebSocket server!\r\n";
+    NSData *welcomeData = [welcomeMessage dataUsingEncoding:NSUTF8StringEncoding];
+    [newSocket writeData:welcomeData withTimeout:-1 tag:0];
+
+    // Start reading data from the socket
+    [newSocket readDataWithTimeout:-1 tag:0];
 }
 
 - (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
@@ -48,14 +56,30 @@
     [self.connectedClients removeObject:sock];
 }
 
+//- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
+//    // Convert the raw data to a plain text string using UTF-8 encoding
+//    NSString *message = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+//
+//    if (message) {
+//        NSLog(@"Received message from WebSocket client: %@", message);
+//        // Handle the received plain text message as needed
+//    } else {
+//        NSLog(@"Received raw data from WebSocket client: %@", data);
+//        // Handle the received raw data as needed
+//    }
+//
+//    // Continue reading data from the socket for WebSocket communication
+//    [sock readDataWithTimeout:-1 tag:0];
+//}
+
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
     NSString *message = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    NSLog(@"Received message from WebSocket client: %@", message);
+    if (message) {
+        [self.delegate didReceiveMessageFromWebSocket:message];
+    }
     
-    // You can handle incoming WebSocket messages here and send responses back if needed.
-    // To send data back to the client, use [sock writeData:data withTimeout:-1 tag:0];
-    
-    [sock readDataWithTimeout:-1 tag:0]; // Continue reading data from the socket
+    [sock readDataWithTimeout:-1 tag:0];
 }
+
 
 @end

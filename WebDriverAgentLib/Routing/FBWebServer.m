@@ -24,11 +24,29 @@
 #import "FBUnknownCommands.h"
 #import "FBConfiguration.h"
 #import "FBLogger.h"
+#import "FBKeyboard.h"
+#import "FBApplication.h"
+
+#import "XCUIApplication+FBTouchAction.h"
 
 #import "XCUIDevice+FBHelpers.h"
 
 static NSString *const FBServerURLBeginMarker = @"ServerURLHere->";
 static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
+
+
+/**
+ Enumerates the different client event types for WebDriverAgent.
+
+ - WDA_KEYS: Represents the "keys" event type.
+ - WDA_TOUCH_PERFORM: Represents the "touch perform" event type.
+ - WDA_PRESS_BUTTON: Represents the "press button" event type.
+ */
+typedef NS_ENUM(NSUInteger, ClientEvents) {
+    WDA_KEYS,
+    WDA_TOUCH_PERFORM,
+    WDA_PRESS_BUTTON,
+};
 
 @interface FBHTTPConnection : RoutingConnection
 @end
@@ -43,12 +61,12 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
 
 @end
 
-
 @interface FBWebServer ()
 @property (nonatomic, strong) FBExceptionHandler *exceptionHandler;
 @property (nonatomic, strong) RoutingHTTPServer *server;
 @property (atomic, assign) BOOL keepAlive;
 @property (nonatomic, nullable) FBTCPSocket *screenshotsBroadcaster;
+@property (nonatomic, strong) WebSocketServer *webSocketServer;
 @end
 
 @implementation FBWebServer
@@ -72,7 +90,7 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
 {
   [FBLogger logFmt:@"Built at %s %s", __DATE__, __TIME__];
   self.exceptionHandler = [FBExceptionHandler new];
-//  [self startWSServer];
+  [self startWSServer];
   [self startHTTPServer];
   [self initScreenshotsBroadcaster];
 
@@ -84,37 +102,109 @@ static NSString *const FBServerURLEndMarker = @"<-ServerURLHere";
 
 - (void)startWSServer
 {
-  self.server = [[WebSocketServer alloc] init];
-  [self.server setRouteQueue:dispatch_get_main_queue()];
+    // Initialize and start the WebSocket server
+    self.webSocketServer = [[WebSocketServer alloc] init];
+    self.webSocketServer.delegate = (id<WebSocketServerDelegate>)self; // Cast to the correct delegate type
+//    [self.webSocketServer startWebSocketServerOnPort:FBConfiguration.wsServerPort]; // Change the port as needed
+    [self.webSocketServer startWebSocketServerOnPort:(uint16_t)FBConfiguration.wsServerPort];
+}
+
+- (void)didReceiveMessageFromWebSocket:(NSString *)text {
+    // Handle the received message from the WebSocket server
+    NSLog(@"Received message from WebSocket server: %@", text);
+    // You can process the message and respond accordingly
   
-//  (void)setDefaultHeader:(NSString *)field value:(NSString *)value;
   
-  [self.server setConnectionClass:[FBHTTPConnection self]];
+  // First, parse the outer JSON
+  NSError *error = nil;
+  NSDictionary *outerJSONDict = [NSJSONSerialization JSONObjectWithData:[text dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
+  if (error) {
+      NSLog(@"Error parsing outer JSON message: %@", error);
+      return;
+  }
 
-  [self registerRouteHandlers:[self.class collectCommandHandlerClasses]];
-  [self registerServerKeyRouteHandlers];
+  // Now, parse the inner JSON string within the "data" field
+  NSString *innerJSONString = outerJSONDict[@"data"];
+  NSData *innerJSONData = [innerJSONString dataUsingEncoding:NSUTF8StringEncoding];
+  NSError *innerError = nil;
+  NSDictionary *innerJSONDict = [NSJSONSerialization JSONObjectWithData:innerJSONData options:0 error:&innerError];
+  if (innerError) {
+      NSLog(@"Error parsing inner JSON message: %@", innerError);
+      return;
+  }
 
-  NSRange serverPortRange = FBConfiguration.bindingWsPortRange;
-  NSError *error;
-  BOOL serverStarted = NO;
+  // Now you can access the values from both the outer and inner JSON dictionaries
+//  NSLog(@"Outer event: %@", outerJSONDict[@"event"]);
+  NSString *event = outerJSONDict[@"event"];
+  NSLog(@"event: %@", event);
+  
+  if (error) {
+            NSLog(@"Error parsing inner JSON message: %@", error);
+        } else {
+  
+          if (event && innerJSONString) {
+              if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
+                NSArray *frequency = innerJSONDict[@"frequency"];
+                NSString *value = [innerJSONDict[@"value"] componentsJoinedByString:@", "];
+                if (![FBKeyboard typeText:value frequency:frequency error:&error]) {
+                    NSLog(@"Error typing text: %@", error);
+                }
+              } else if ([event isEqualToString:[self clientEvent:(WDA_TOUCH_PERFORM)]]) {
+    //              [self wdaTouchPerform:data];
+                
+//                NSLog(@"Inner actions: %@", innerJSONDict[@"actions"]);
+                
+                XCUIApplication *application = FBApplication.fb_activeApplication;
+                NSArray *actions = innerJSONDict[@"actions"];
+                NSError *eventError;
+                
+//                NSLog(@"Inner actions: %@", actions);
 
-  for (NSUInteger index = 0; index < serverPortRange.length; index++) {
-    NSInteger port = serverPortRange.location + index;
-    [self.server setPort:(UInt16)port];
+                // Perform the touch actions and handle errors
+                [application fb_performAppiumTouchActions:actions elementCache:nil error:&eventError];
+                
+              } else if ([event isEqualToString:[self clientEvent:WDA_PRESS_BUTTON]]) {
+    //              [self wdaPressButton:data];
+                NSError *eventError;
+                [XCUIDevice.sharedDevice fb_pressButton:(NSString *)innerJSONDict[@"name"]
+                                                     forDuration:nil
+                                                  error:&eventError];
+              }
+          } else {
+              NSLog(@"Event or eventData is nil.");
+          }
+          
+          outerJSONDict = nil;
+          innerJSONDict = nil;
+        }
+    
+}
 
-    serverStarted = [self attemptToStartServer:self.server onPort:port withError:&error];
-    if (serverStarted) {
-      break;
+/**
+ Returns the corresponding event name for a given client event type.
+
+ @param whichEvent The client event type.
+ @return The event name as a string.
+ */
+- (NSString *)clientEvent:(ClientEvents)whichEvent {
+    NSString *result = nil;
+    
+    switch (whichEvent) {
+        case WDA_KEYS:
+            result = @"WDA_KEYS";
+            break;
+        case WDA_TOUCH_PERFORM:
+            result = @"WDA_TOUCH_PERFORM";
+            break;
+        case WDA_PRESS_BUTTON:
+            result = @"WDA_PRESS_BUTTON";
+            break;
+        default:
+            result = @"unknown";
+            break;
     }
-
-    [FBLogger logFmt:@"Failed to start web server on port %ld with error %@", (long)port, [error description]];
-  }
-
-  if (!serverStarted) {
-    [FBLogger logFmt:@"Last attempt to start web server failed with error %@", [error description]];
-    abort();
-  }
-  [FBLogger logFmt:@"%@http://%@:%d%@", FBServerURLBeginMarker, [XCUIDevice sharedDevice].fb_wifiIPAddress ?: @"localhost", [self.server port], FBServerURLEndMarker];
+    
+    return result;
 }
 
 - (void)startHTTPServer
