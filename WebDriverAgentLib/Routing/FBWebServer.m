@@ -112,73 +112,54 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
 - (void)didReceiveMessageFromWebSocket:(NSString *)text {
     // Handle the received message from the WebSocket server
     NSLog(@"Received message from WebSocket server: %@", text);
-    // You can process the message and respond accordingly
   
+    // First, parse the outer JSON
+    NSData *outerJSONData = [text dataUsingEncoding:NSUTF8StringEncoding];
   
-  // First, parse the outer JSON
-  NSError *error = nil;
-  NSDictionary *outerJSONDict = [NSJSONSerialization JSONObjectWithData:[text dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
-  if (error) {
-      NSLog(@"Error parsing outer JSON message: %@", error);
-      return;
-  }
+    NSError *outerError = nil;
+    NSDictionary *outerJSONDict = [NSJSONSerialization JSONObjectWithData:outerJSONData options:0 error:&outerError];
 
-  // Now, parse the inner JSON string within the "data" field
-  NSString *innerJSONString = outerJSONDict[@"data"];
-  NSData *innerJSONData = [innerJSONString dataUsingEncoding:NSUTF8StringEncoding];
-  NSError *innerError = nil;
-  NSDictionary *innerJSONDict = [NSJSONSerialization JSONObjectWithData:innerJSONData options:0 error:&innerError];
-  if (innerError) {
-      NSLog(@"Error parsing inner JSON message: %@", innerError);
-      return;
-  }
+    if (outerError) {
+        NSLog(@"Error parsing outer JSON message: %@", outerError);
+        return;
+    }
 
-  // Now you can access the values from both the outer and inner JSON dictionaries
-//  NSLog(@"Outer event: %@", outerJSONDict[@"event"]);
-  NSString *event = outerJSONDict[@"event"];
-  NSLog(@"event: %@", event);
-  
-  if (error) {
-            NSLog(@"Error parsing inner JSON message: %@", error);
-        } else {
-  
-          if (event && innerJSONString) {
-              if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
-                NSArray *frequency = innerJSONDict[@"frequency"];
-                NSString *value = [innerJSONDict[@"value"] componentsJoinedByString:@", "];
-                if (![FBKeyboard typeText:value frequency:frequency error:&error]) {
-                    NSLog(@"Error typing text: %@", error);
-                }
-              } else if ([event isEqualToString:[self clientEvent:(WDA_TOUCH_PERFORM)]]) {
-    //              [self wdaTouchPerform:data];
-                
-//                NSLog(@"Inner actions: %@", innerJSONDict[@"actions"]);
-                
-                XCUIApplication *application = FBApplication.fb_activeApplication;
-                NSArray *actions = innerJSONDict[@"actions"];
-                NSError *eventError;
-                
-//                NSLog(@"Inner actions: %@", actions);
-
-                // Perform the touch actions and handle errors
-                [application fb_performAppiumTouchActions:actions elementCache:nil error:&eventError];
-                
-              } else if ([event isEqualToString:[self clientEvent:WDA_PRESS_BUTTON]]) {
-    //              [self wdaPressButton:data];
-                NSError *eventError;
-                [XCUIDevice.sharedDevice fb_pressButton:(NSString *)innerJSONDict[@"name"]
-                                                     forDuration:nil
-                                                  error:&eventError];
-              }
-          } else {
-              NSLog(@"Event or eventData is nil.");
-          }
-          
-          outerJSONDict = nil;
-          innerJSONDict = nil;
-        }
+    // Now, parse the inner JSON string within the "data" field
+    NSString *dataJSONString = outerJSONDict[@"data"];
     
+    if (dataJSONString) {
+        NSData *innerJSONData = [dataJSONString dataUsingEncoding:NSUTF8StringEncoding];
+      
+        NSError *innerError = nil;
+        NSDictionary *dataDict = [NSJSONSerialization JSONObjectWithData:innerJSONData options:0 error:&innerError];
+        if (innerError) {
+            NSLog(@"Error parsing inner JSON message: %@", innerError);
+            return;
+        }
+
+        // Now you can access the values from both the outer and inner JSON dictionaries
+        NSString *event = outerJSONDict[@"event"];
+        //NSLog(@"event: %@", event);
+
+        if (event) {
+            if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
+                [self keys:dataDict];
+            } else if ([event isEqualToString:[self clientEvent:(WDA_TOUCH_PERFORM)]]) {
+                [self touchPerform:dataDict];
+            } else if ([event isEqualToString:[self clientEvent:WDA_PRESS_BUTTON]]) {
+                [self pressButton:dataDict];
+            } else {
+                NSLog(@"Unknown event: %@", event);
+            }
+        } else {
+            NSLog(@"Event is nil.");
+        }
+
+    } else {
+        NSLog(@"Inner JSON string is nil.");
+    }
 }
+
 
 /**
  Returns the corresponding event name for a given client event type.
@@ -205,6 +186,73 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
     }
     
     return result;
+}
+
+- (void)keys:(NSDictionary *)eventData {
+    // Check for nil values
+    if (!eventData || !eventData[@"value"]) {
+        NSLog(@"Invalid eventData or value.");
+      return;
+    }
+
+    id valueObject = eventData[@"value"];
+    if (![valueObject isKindOfClass:[NSArray class]]) {
+        NSLog(@"'value' is not an array.");
+      return;
+    }
+
+    NSArray *valueArray = (NSArray *)valueObject;
+    NSString *textToType = [valueArray componentsJoinedByString:@""];
+    NSUInteger frequency = [eventData[@"frequency"] unsignedIntegerValue] ?: [FBConfiguration maxTypingFrequency];
+    NSError *eventError;
+
+    // Perform the typing action and handle errors
+    if (![FBKeyboard typeText:textToType frequency:frequency error:&eventError]) {
+        NSLog(@"Error typing text: %@", eventError);
+    }
+}
+
+- (void)touchPerform:(NSDictionary *)eventData {
+    // Check for nil values
+    if (!eventData || !eventData[@"actions"] || ![eventData[@"actions"] isKindOfClass:[NSArray class]]) {
+        NSLog(@"Invalid eventData or actions.");
+      return;
+    }
+
+    XCUIApplication *application = FBApplication.fb_activeApplication;
+    NSArray *actions = eventData[@"actions"];
+    NSError *eventError;
+
+    // Perform the touch actions and handle errors
+    if (![application fb_performAppiumTouchActions:actions elementCache:nil error:&eventError]) {
+        NSLog(@"Error performing touch actions: %@", eventError);
+      return;
+    }
+}
+
+- (void)pressButton:(NSDictionary *)eventData {
+    // Check for nil values
+    if (!eventData || !eventData[@"name"]) {
+        NSLog(@"Invalid eventData or button name.");
+        return;
+    }
+
+    id nameObject = eventData[@"name"];
+    if (![nameObject isKindOfClass:[NSString class]]) {
+        NSLog(@"'name' is not a string.");
+        return;
+    }
+
+    NSError *eventError;
+
+    // Perform the button press action and handle errors
+    if (![XCUIDevice.sharedDevice fb_pressButton:(NSString *)nameObject
+                                     forDuration:nil
+                                           error:&eventError]) {
+        NSLog(@"Error pressing button: %@", eventError);
+        return;
+    }
+    return;
 }
 
 - (void)startHTTPServer
