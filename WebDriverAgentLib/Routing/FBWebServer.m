@@ -128,10 +128,10 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
     NSString *dataJSONString = outerJSONDict[@"data"];
     
     if (dataJSONString) {
-        NSData *innerJSONData = [dataJSONString dataUsingEncoding:NSUTF8StringEncoding];
+        NSData *dataJSONData = [dataJSONString dataUsingEncoding:NSUTF8StringEncoding];
       
         NSError *innerError = nil;
-        NSDictionary *dataDict = [NSJSONSerialization JSONObjectWithData:innerJSONData options:0 error:&innerError];
+        NSDictionary *dataDict = [NSJSONSerialization JSONObjectWithData:dataJSONData options:0 error:&innerError];
         if (innerError) {
             NSLog(@"Error parsing inner JSON message: %@", innerError);
             return;
@@ -150,6 +150,7 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
                 [self pressButton:dataDict];
             } else {
                 NSLog(@"Unknown event: %@", event);
+                return;
             }
         } else {
             NSLog(@"Event is nil.");
