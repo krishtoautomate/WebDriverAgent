@@ -100,21 +100,82 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
          [runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]]);
 }
 
-- (void)startWSServer
-{
+//- (void)startWSServer
+//{
+//    // Initialize and start the WebSocket server
+//    self.webSocketServer = [[WebSocketServer alloc] init];
+//    self.webSocketServer.delegate = (id<WebSocketServerDelegate>)self; // Cast to the correct delegate type
+////    [self.webSocketServer startWebSocketServerOnPort:FBConfiguration.wsServerPort]; // Change the port as needed
+//    [self.webSocketServer startWebSocketServerOnPort:(uint16_t)FBConfiguration.wsServerPort];
+//}
+
+- (void)startWSServer {
     // Initialize and start the WebSocket server
     self.webSocketServer = [[WebSocketServer alloc] init];
     self.webSocketServer.delegate = (id<WebSocketServerDelegate>)self; // Cast to the correct delegate type
-//    [self.webSocketServer startWebSocketServerOnPort:FBConfiguration.wsServerPort]; // Change the port as needed
+
+    // Start the server
+    [self startServer];
+}
+
+- (void)startServer {
     [self.webSocketServer startWebSocketServerOnPort:(uint16_t)FBConfiguration.wsServerPort];
+}
+
+- (void)stopServer {
+    [self.webSocketServer stopWebSocketServer];
+}
+
+- (void)checkServerStatus {
+    // Send a ping or health check request to the server
+    // Wait for a response within a reasonable timeframe
+    // If no response, consider the server as crashed and restart it
+    if (![self isServerHealthy]) {
+        NSLog(@"Server is not healthy. Restarting...");
+        [self restartServer];
+    }
+}
+
+- (void)restartServer {
+    // Stop the current server instance
+    [self stopServer];
+    
+    // Start a new server instance
+    [self startServer];
+}
+
+- (BOOL)isServerHealthy {
+    // Implement your logic to check if the server is healthy
+    // For example, send a ping and wait for a response
+    // Return YES if the server is healthy, NO otherwise
+    return YES; // Placeholder value
 }
 
 - (void)didReceiveMessageFromWebSocket:(NSString *)text {
     // Handle the received message from the WebSocket server
-    NSLog(@"Received message from WebSocket server: %@", text);
+//    NSLog(@"Received message from WebSocket server: %@", text);
+    
+    // Split the received text into individual messages using newline delimiter
+    NSArray *messages = [text componentsSeparatedByString:@"\n"];
+  
+    if ([messages count] == 1 && [text isEqualToString:messages[0]]) {
+        NSLog(@"No newline-delimited messages found.");
+        return;
+    }
+    
+    for (NSString *message in messages) {
+        if ([message length] > 0) {
+            [self processReceivedMessage:message];
+        }
+    }
+}
+
+- (void)processReceivedMessage:(NSString *)message {
+    // Handle the received message from the WebSocket server
+//    NSLog(@"Received message from WebSocket server: %@", text);
   
     // First, parse the outer JSON
-    NSData *outerJSONData = [text dataUsingEncoding:NSUTF8StringEncoding];
+    NSData *outerJSONData = [message dataUsingEncoding:NSUTF8StringEncoding];
   
     NSError *outerError = nil;
     NSDictionary *outerJSONDict = [NSJSONSerialization JSONObjectWithData:outerJSONData options:0 error:&outerError];
@@ -127,7 +188,7 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
     // Now, parse the inner JSON string within the "data" field
     NSString *dataJSONString = outerJSONDict[@"data"];
     
-    if (dataJSONString) {
+//    if (dataJSONString) {
         NSData *dataJSONData = [dataJSONString dataUsingEncoding:NSUTF8StringEncoding];
       
         NSError *innerError = nil;
@@ -139,7 +200,7 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
 
         // Now you can access the values from both the outer and inner JSON dictionaries
         NSString *event = outerJSONDict[@"event"];
-        //NSLog(@"event: %@", event);
+        NSLog(@"event: %@", event);
 
         if (event) {
             if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
@@ -156,9 +217,9 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
             NSLog(@"Event is nil.");
         }
 
-    } else {
-        NSLog(@"Inner JSON string is nil.");
-    }
+//    } else {
+//        NSLog(@"Inner JSON string is nil.");
+//    }
 }
 
 
