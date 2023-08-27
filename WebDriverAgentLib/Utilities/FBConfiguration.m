@@ -19,7 +19,7 @@
 #import "XCUIApplication+FBUIInterruptions.h"
 
 static NSUInteger const DefaultStartingPort = 8100;
-static NSUInteger const DefaultWebsocketPort = 7100;
+static NSUInteger const DefaultWebsocketPort = 2100;
 static NSUInteger const DefaultMjpegServerPort = 9100;
 static NSUInteger const DefaultPortRange = 100;
 

@@ -188,38 +188,39 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
     // Now, parse the inner JSON string within the "data" field
     NSString *dataJSONString = outerJSONDict[@"data"];
     
-//    if (dataJSONString) {
-        NSData *dataJSONData = [dataJSONString dataUsingEncoding:NSUTF8StringEncoding];
-      
-        NSError *innerError = nil;
-        NSDictionary *dataDict = [NSJSONSerialization JSONObjectWithData:dataJSONData options:0 error:&innerError];
-        if (innerError) {
-            NSLog(@"Error parsing inner JSON message: %@", innerError);
-            return;
-        }
+    if (dataJSONString) {
+      NSData *dataJSONData = [dataJSONString dataUsingEncoding:NSUTF8StringEncoding];
+    
+      NSError *innerError = nil;
+      NSDictionary *dataDict = [NSJSONSerialization JSONObjectWithData:dataJSONData options:0 error:&innerError];
+      if (innerError) {
+          NSLog(@"Error parsing inner JSON message: %@", innerError);
+          return;
+      }
 
-        // Now you can access the values from both the outer and inner JSON dictionaries
-        NSString *event = outerJSONDict[@"event"];
-        NSLog(@"event: %@", event);
+      // Now you can access the values from both the outer and inner JSON dictionaries
+      NSString *event = outerJSONDict[@"event"];
+      NSLog(@"event: %@", event);
 
-        if (event) {
-            if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
-                [self keys:dataDict];
-            } else if ([event isEqualToString:[self clientEvent:(WDA_TOUCH_PERFORM)]]) {
-                [self touchPerform:dataDict];
-            } else if ([event isEqualToString:[self clientEvent:WDA_PRESS_BUTTON]]) {
-                [self pressButton:dataDict];
-            } else {
-                NSLog(@"Unknown event: %@", event);
-                return;
-            }
-        } else {
-            NSLog(@"Event is nil.");
-        }
+      if (event) {
+          if ([event isEqualToString:[self clientEvent:(WDA_KEYS)]]) {
+              [self keys:dataDict];
+          } else if ([event isEqualToString:[self clientEvent:(WDA_TOUCH_PERFORM)]]) {
+              [self touchPerform:dataDict];
+          } else if ([event isEqualToString:[self clientEvent:WDA_PRESS_BUTTON]]) {
+              [self pressButton:dataDict];
+          } else {
+              NSLog(@"Unknown event: %@", event);
+              return;
+          }
+      } else {
+          NSLog(@"Event is nil.");
+      }
 
-//    } else {
-//        NSLog(@"Inner JSON string is nil.");
-//    }
+    } else {
+      NSLog(@"data is nil.");
+      return;
+    }
 }
 
 
@@ -253,13 +254,13 @@ typedef NS_ENUM(NSUInteger, ClientEvents) {
 - (void)keys:(NSDictionary *)eventData {
     // Check for nil values
     if (!eventData || !eventData[@"value"]) {
-        NSLog(@"Invalid eventData or value.");
+      NSLog(@"Invalid eventData or value.");
       return;
     }
 
     id valueObject = eventData[@"value"];
     if (![valueObject isKindOfClass:[NSArray class]]) {
-        NSLog(@"'value' is not an array.");
+      NSLog(@"'value' is not an array.");
       return;
     }
 

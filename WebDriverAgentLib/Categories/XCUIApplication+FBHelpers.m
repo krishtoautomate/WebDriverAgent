@@ -31,7 +31,6 @@
 #import "XCTestPrivateSymbols.h"
 #import "XCTRunnerDaemonSession.h"
 
-const static NSTimeInterval FBMinimumAppSwitchWait = 3.0;
 static NSString* const FBUnknownBundleId = @"unknown";
 
 
@@ -92,7 +91,7 @@ static NSString* const FBUnknownBundleId = @"unknown";
   if(![[XCUIDevice sharedDevice] fb_goToHomescreenWithError:error]) {
     return NO;
   }
-  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:MAX(duration, FBMinimumAppSwitchWait)]];
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:MAX(duration, .0)]];
   [self fb_activate];
   return YES;
 }
@@ -127,9 +126,7 @@ static NSString* const FBUnknownBundleId = @"unknown";
   info[@"isEnabled"] = [@([wrappedSnapshot isWDEnabled]) stringValue];
   info[@"isVisible"] = [@([wrappedSnapshot isWDVisible]) stringValue];
   info[@"isAccessible"] = [@([wrappedSnapshot isWDAccessible]) stringValue];
-#if TARGET_OS_TV
   info[@"isFocused"] = [@([wrappedSnapshot isWDFocused]) stringValue];
-#endif
 
   if (!recursive) {
     return info.copy;
@@ -193,7 +190,7 @@ static NSString* const FBUnknownBundleId = @"unknown";
 - (NSString *)fb_descriptionRepresentation
 {
   NSMutableArray<NSString *> *childrenDescriptions = [NSMutableArray array];
-  for (XCUIElement *child in [self.fb_query childrenMatchingType:XCUIElementTypeAny].allElementsBoundByAccessibilityElement) {
+  for (XCUIElement *child in [self.fb_query childrenMatchingType:XCUIElementTypeAny].allElementsBoundByIndex) {
     [childrenDescriptions addObject:child.debugDescription];
   }
   // debugDescription property of XCUIApplication instance shows descendants addresses in memory
