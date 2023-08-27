@@ -8,7 +8,6 @@
  */
 
 #import <XCTest/XCTest.h>
-#import <MobileCoreServices/MobileCoreServices.h>
 
 #import "FBImageIOScaler.h"
 #import "FBIntegrationTestCase.h"

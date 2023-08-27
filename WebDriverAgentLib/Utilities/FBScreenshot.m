@@ -10,6 +10,7 @@
 #import "FBScreenshot.h"
 
 #import <MobileCoreServices/MobileCoreServices.h>
+@import UniformTypeIdentifiers;
 
 #import "FBConfiguration.h"
 #import "FBErrorBuilder.h"
@@ -60,9 +61,11 @@ NSString *formatTimeInterval(NSTimeInterval interval) {
   switch (quality) {
     case 1:
     case 2:
-      return (__bridge id)kUTTypeJPEG;
+      return UTTypeJPEG;
+    case 3:
+      return UTTypeHEIC;
     default:
-      return (__bridge id)kUTTypePNG;
+      return UTTypePNG;
   }
 }
 
@@ -228,7 +231,6 @@ NSString *formatTimeInterval(NSTimeInterval interval) {
                                    compressionQuality:(CGFloat)compressionQuality
                                                 error:(NSError **)error
 {
-  // TODO: Use native accessors after we drop the support of Xcode 12.4 and below
   Class imageEncodingClass = NSClassFromString(@"XCTImageEncoding");
   if (nil == imageEncodingClass) {
     [[[FBErrorBuilder builder]
@@ -236,6 +238,26 @@ NSString *formatTimeInterval(NSTimeInterval interval) {
      buildError:error];
     return nil;
   }
+
+  // if ([uti conformsToType:UTTypeHEIC]) {
+  //   static BOOL isHeicSuppported = NO;
+  //   static dispatch_once_t onceToken;
+  //   dispatch_once(&onceToken, ^{
+  //     SEL selector = NSSelectorFromString(@"supportsHEICImageEncoding");
+  //     NSMethodSignature *signature = [imageEncodingClass methodSignatureForSelector:selector];
+  //     if (nil != signature) {
+  //       NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+  //       [invocation setSelector:selector];
+  //       [invocation invokeWithTarget:imageEncodingClass];
+  //       [invocation getReturnValue:&isHeicSuppported];
+  //     }
+  //   });
+  //   if (!isHeicSuppported) {
+  //     [FBLogger logFmt:@"The device under test does not support HEIC image encoding. Falling back to PNG"];
+  //     uti = UTTypePNG;
+  //   }
+  // }
+
   id imageEncodingAllocated = [imageEncodingClass alloc];
   SEL imageEncodingConstructorSelector = NSSelectorFromString(@"initWithUniformTypeIdentifier:compressionQuality:");
   if (![imageEncodingAllocated respondsToSelector:imageEncodingConstructorSelector]) {
@@ -261,7 +283,6 @@ NSString *formatTimeInterval(NSTimeInterval interval) {
                           compressionQuality:(CGFloat)compressionQuality
                                        error:(NSError **)error
 {
-  // TODO: Use native accessors after we drop the support of Xcode 12.4 and below
   id imageEncoding = [self.class imageEncodingWithUniformTypeIdentifier:uti
                                                      compressionQuality:compressionQuality
                                                                   error:error];

@@ -42,7 +42,7 @@
   }
 
   NSError *error;
-  XCTAssertTrue([FBKeyboard waitUntilVisibleForApplication:self.testedApplication timeout:0 error:&error]);
+  XCTAssertTrue([FBKeyboard waitUntilVisibleForApplication:self.testedApplication timeout:1 error:&error]);
   XCTAssertNil(error);
   XCTAssertTrue([FBKeyboard typeText:text error:&error]);
   XCTAssertNil(error);
@@ -63,7 +63,7 @@
   }
 
   NSError *error;
-  XCTAssertTrue([FBKeyboard waitUntilVisibleForApplication:self.testedApplication timeout:0 error:&error]);
+  XCTAssertTrue([FBKeyboard waitUntilVisibleForApplication:self.testedApplication timeout:1 error:&error]);
   XCTAssertNil(error);
   if ([UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
     XCTAssertTrue([self.testedApplication fb_dismissKeyboardWithKeyNames:nil error:&error]);
@@ -77,7 +77,7 @@
 - (void)testKeyboardPresenceVerification
 {
   NSError *error;
-  XCTAssertFalse([FBKeyboard waitUntilVisibleForApplication:self.testedApplication timeout:0 error:&error]);
+  XCTAssertFalse([FBKeyboard waitUntilVisibleForApplication:self.testedApplication timeout:1 error:&error]);
   XCTAssertNotNil(error);
 }
 

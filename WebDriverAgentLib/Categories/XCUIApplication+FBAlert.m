@@ -80,7 +80,7 @@ NSString *const FB_SAFARI_APP_NAME = @"Safari";
   NSPredicate *alertCollectorPredicate = [NSPredicate predicateWithFormat:@"elementType IN {%lu,%lu,%lu}",
                                           XCUIElementTypeAlert, XCUIElementTypeSheet, XCUIElementTypeScrollView];
   XCUIElement *alert = [[self descendantsMatchingType:XCUIElementTypeAny]
-                        matchingPredicate:alertCollectorPredicate].fb_firstMatch;
+                        matchingPredicate:alertCollectorPredicate].allElementsBoundByIndex.firstObject;
   if (nil == alert) {
     return nil;
   }

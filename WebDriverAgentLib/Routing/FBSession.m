@@ -80,7 +80,7 @@ static FBSession *_activeSession = nil;
 + (void)markSessionActive:(FBSession *)session
 {
   if (_activeSession) {
-//    [_activeSession kill];
+    [_activeSession kill];
   }
   _activeSession = session;
 }
@@ -88,31 +88,12 @@ static FBSession *_activeSession = nil;
 + (instancetype)sessionWithIdentifier:(NSString *)identifier
 {
   if (!identifier) {
-//    return nil;
+    return nil;
   }
   if (![identifier isEqualToString:_activeSession.identifier]) {
-//    return nil;
+    return nil;
   }
   return _activeSession;
-}
-
-+ (instancetype)init
-{
-  FBSession *session = [FBSession new];
-  session.alertsMonitor = nil;
-  session.defaultAlertAction = nil;
-  session.identifier = [[NSUUID UUID] UUIDString];
-  session.defaultActiveApplication = FBDefaultApplicationAuto;
-  //session.testedApplicationBundleId = nil;
-  //NSMutableDictionary *apps = [NSMutableDictionary dictionary];
-  //if (application) {
-  //  [apps setObject:application forKey:application.bundleID];
-  //  session.testedApplicationBundleId = application.bundleID;
-  //}
-  //session.applications = apps.copy;
-//  session.elementCache = [FBElementCache new];
-//  [FBSession markSessionActive:session];
-  return session;
 }
 
 + (instancetype)initWithApplication:(FBApplication *)application
@@ -149,7 +130,7 @@ static FBSession *_activeSession = nil;
 - (void)kill
 {
   if (nil == _activeSession) {
-//    return;
+    return;
   }
 
   if (nil != self.alertsMonitor) {
@@ -169,7 +150,7 @@ static FBSession *_activeSession = nil;
     }
   }
 
-//  _activeSession = nil;
+  _activeSession = nil;
 }
 
 - (FBApplication *)activeApplication
@@ -178,16 +159,16 @@ static FBSession *_activeSession = nil;
     ? nil
     : self.defaultActiveApplication;
   FBApplication *application = [FBApplication fb_activeApplicationWithDefaultBundleId:defaultBundleId];
-//  FBApplication *testedApplication = nil;
-//  if (self.testedApplicationBundleId && self.isTestedApplicationExpectedToRun) {
-//    testedApplication = nil != application.bundleID && [application.bundleID isEqualToString:self.testedApplicationBundleId]
-//      ? application
-//      : [[FBApplication alloc] initWithBundleIdentifier:self.testedApplicationBundleId];
-//  }
-//  if (testedApplication && !testedApplication.running) {
-//    NSString *description = [NSString stringWithFormat:@"The application under test with bundle id '%@' is not running, possibly crashed", self.testedApplicationBundleId];
-//    [[NSException exceptionWithName:FBApplicationCrashedException reason:description userInfo:nil] raise];
-//  }
+  FBApplication *testedApplication = nil;
+  if (self.testedApplicationBundleId && self.isTestedApplicationExpectedToRun) {
+    testedApplication = nil != application.bundleID && [application.bundleID isEqualToString:self.testedApplicationBundleId]
+      ? application
+      : [[FBApplication alloc] initWithBundleIdentifier:self.testedApplicationBundleId];
+  }
+  if (testedApplication && !testedApplication.running) {
+    NSString *description = [NSString stringWithFormat:@"The application under test with bundle id '%@' is not running, possibly crashed", self.testedApplicationBundleId];
+    [[NSException exceptionWithName:FBApplicationCrashedException reason:description userInfo:nil] raise];
+  }
   return application;
 }
 
@@ -197,13 +178,13 @@ static FBSession *_activeSession = nil;
                                      environment:(nullable NSDictionary <NSString *, NSString *> *)environment
 {
   FBApplication *app = [[FBApplication alloc] initWithBundleIdentifier:bundleIdentifier];
+  if (nil == shouldWaitForQuiescence) {
+    // Iherit the quiescence check setting from the main app under test by default
+    app.fb_shouldWaitForQuiescence = nil != self.testedApplicationBundleId && self.shouldAppsWaitForQuiescence;
+  } else {
+    app.fb_shouldWaitForQuiescence = [shouldWaitForQuiescence boolValue];
+  }
   if (app.fb_state < 2) {
-    if (nil == shouldWaitForQuiescence) {
-      // Iherit the quiescence check setting from the main app under test by default
-      app.fb_shouldWaitForQuiescence = nil != self.testedApplicationBundleId && self.shouldAppsWaitForQuiescence;
-    } else {
-      app.fb_shouldWaitForQuiescence = [shouldWaitForQuiescence boolValue];
-    }
     app.launchArguments = arguments ?: @[];
     app.launchEnvironment = environment ?: @{};
     [app launch];

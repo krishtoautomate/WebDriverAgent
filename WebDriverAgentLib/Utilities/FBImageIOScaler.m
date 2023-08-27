@@ -11,6 +11,7 @@
 
 #import <ImageIO/ImageIO.h>
 #import <UIKit/UIKit.h>
+@import UniformTypeIdentifiers;
 #import <MobileCoreServices/MobileCoreServices.h>
 
 #import "FBConfiguration.h"

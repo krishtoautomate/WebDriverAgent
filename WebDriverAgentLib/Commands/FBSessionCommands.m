@@ -48,7 +48,6 @@
     [[FBRoute POST:@"/wda/apps/terminate"] respondWithTarget:self action:@selector(handleSessionAppTerminate:)],
     [[FBRoute POST:@"/wda/apps/state"].withoutSession respondWithTarget:self action:@selector(handleSessionAppState:)],
     [[FBRoute POST:@"/wda/apps/state"] respondWithTarget:self action:@selector(handleSessionAppState:)],
-    [[FBRoute GET:@"/wda/apps/list"].withoutSession respondWithTarget:self action:@selector(handleGetActiveAppsList:)],
     [[FBRoute GET:@"/wda/apps/list"] respondWithTarget:self action:@selector(handleGetActiveAppsList:)],
     [[FBRoute GET:@""] respondWithTarget:self action:@selector(handleGetActiveSession:)],
     [[FBRoute DELETE:@""] respondWithTarget:self action:@selector(handleDeleteSession:)],
@@ -58,12 +57,8 @@
     [[FBRoute GET:@"/wda/healthcheck"].withoutSession respondWithTarget:self action:@selector(handleGetHealthCheck:)],
 
     // Settings endpoints
-    [[FBRoute GET:@"/appium/settings"].withoutSession respondWithTarget:self action:@selector(handleGetSettings:)],
     [[FBRoute GET:@"/appium/settings"] respondWithTarget:self action:@selector(handleGetSettings:)],
-    [[FBRoute POST:@"/appium/settings"].withoutSession respondWithTarget:self action:@selector(handleSetSettings:)],
     [[FBRoute POST:@"/appium/settings"] respondWithTarget:self action:@selector(handleSetSettings:)],
-    [[FBRoute GET:@"/updateApplication"].withoutSession respondWithTarget:self action:@selector(updateApplication:)],
-    [[FBRoute GET:@"/updateApplication"] respondWithTarget:self action:@selector(updateApplication:)],
   ];
 }
 
@@ -76,9 +71,16 @@
   if (!urlString) {
     return FBResponseWithStatus([FBCommandStatus invalidArgumentErrorWithMessage:@"URL is required" traceback:nil]);
   }
+  NSString* bundleId = request.arguments[@"bundleId"];
   NSError *error;
-  if (![XCUIDevice.sharedDevice fb_openUrl:urlString error:&error]) {
-    return FBResponseWithUnknownError(error);
+  if (nil == bundleId) {
+    if (![XCUIDevice.sharedDevice fb_openUrl:urlString error:&error]) {
+      return FBResponseWithUnknownError(error);
+    }
+  } else {
+    if (![XCUIDevice.sharedDevice fb_openUrl:urlString withApplication:bundleId error:&error]) {
+      return FBResponseWithUnknownError(error);
+    }
   }
   return FBResponseWithOK();
 }
@@ -98,6 +100,8 @@
   if (nil == (capabilities = FBParseCapabilities((NSDictionary *)request.arguments[@"capabilities"], &error))) {
     return FBResponseWithStatus([FBCommandStatus sessionNotCreatedError:error.description traceback:nil]);
   }
+
+  [FBConfiguration resetSessionSettings];
   [FBConfiguration setShouldUseTestManagerForVisibilityDetection:[capabilities[FB_CAP_USE_TEST_MANAGER_FOR_VISIBLITY_DETECTION] boolValue]];
   if (capabilities[FB_SETTING_USE_COMPACT_RESPONSES]) {
     [FBConfiguration setShouldUseCompactResponses:[capabilities[FB_SETTING_USE_COMPACT_RESPONSES] boolValue]];
@@ -106,8 +110,8 @@
   if (elementResponseAttributes) {
     [FBConfiguration setElementResponseAttributes:elementResponseAttributes];
   }
-  if (capabilities[FB_CAP_MAX_TYPING_FREQUNCY]) {
-    [FBConfiguration setMaxTypingFrequency:[capabilities[FB_CAP_MAX_TYPING_FREQUNCY] unsignedIntegerValue]];
+  if (capabilities[FB_CAP_MAX_TYPING_FREQUENCY]) {
+    [FBConfiguration setMaxTypingFrequency:[capabilities[FB_CAP_MAX_TYPING_FREQUENCY] unsignedIntegerValue]];
   }
   if (capabilities[FB_CAP_USE_SINGLETON_TEST_MANAGER]) {
     [FBConfiguration setShouldUseSingletonTestManager:[capabilities[FB_CAP_USE_SINGLETON_TEST_MANAGER] boolValue]];
@@ -206,12 +210,6 @@
   return FBResponseWithObject(@(result));
 }
 
-+ (id<FBResponsePayload>)updateApplication:(FBRouteRequest *)request
-{
-  request.session.tempApplication = request.session.activeApplication?: FBApplication.fb_activeApplication;
-  return FBResponseWithOK();
-}
-
 + (id<FBResponsePayload>)handleSessionAppTerminate:(FBRouteRequest *)request
 {
   BOOL result = [request.session terminateApplicationWithBundleId:(id)request.arguments[@"bundleId"]];
@@ -243,7 +241,7 @@
 + (id<FBResponsePayload>)handleGetStatus:(FBRouteRequest *)request
 {
   // For updatedWDABundleId capability by Appium
-  NSString *productBundleIdentifier = @"RDSRunner";
+  NSString *productBundleIdentifier = @"com.facebook.WebDriverAgentRunner";
   NSString *envproductBundleIdentifier = NSProcessInfo.processInfo.environment[@"WDA_PRODUCT_BUNDLE_IDENTIFIER"];
   if (envproductBundleIdentifier && [envproductBundleIdentifier length] != 0) {
     productBundleIdentifier = NSProcessInfo.processInfo.environment[@"WDA_PRODUCT_BUNDLE_IDENTIFIER"];
@@ -268,14 +266,14 @@
           @"name" : [[UIDevice currentDevice] systemName],
           @"version" : [[UIDevice currentDevice] systemVersion],
           @"sdkVersion": FBSDKVersion() ?: @"unknown",
-//          @"testmanagerdVersion": @(FBTestmanagerdVersion()),
+          @"testmanagerdVersion": @(FBTestmanagerdVersion()),
         },
       @"ios" :
         @{
 #if TARGET_OS_SIMULATOR
           @"simulatorVersion" : [[UIDevice currentDevice] systemVersion],
 #endif
-          @"ip" : [XCUIDevice sharedDevice].fb_wifiIPAddress ?: @"localhost"
+          @"ip" : [XCUIDevice sharedDevice].fb_wifiIPAddress ?: [NSNull null]
         },
       @"build" : buildInfo.copy
     }
@@ -309,13 +307,12 @@
       FB_SETTING_ANIMATION_COOL_OFF_TIMEOUT: @([FBConfiguration animationCoolOffTimeout]),
       FB_SETTING_BOUND_ELEMENTS_BY_INDEX: @([FBConfiguration boundElementsByIndex]),
       FB_SETTING_REDUCE_MOTION: @([FBConfiguration reduceMotionEnabled]),
-      FB_SETTING_DEFAULT_ACTIVE_APPLICATION: request.session.defaultActiveApplication?: FBApplication.fb_activeApplication,
+      FB_SETTING_DEFAULT_ACTIVE_APPLICATION: request.session.defaultActiveApplication,
       FB_SETTING_ACTIVE_APP_DETECTION_POINT: FBActiveAppDetectionPoint.sharedInstance.stringCoordinates,
       FB_SETTING_INCLUDE_NON_MODAL_ELEMENTS: @([FBConfiguration includeNonModalElements]),
       FB_SETTING_ACCEPT_ALERT_BUTTON_SELECTOR: FBConfiguration.acceptAlertButtonSelector,
       FB_SETTING_DISMISS_ALERT_BUTTON_SELECTOR: FBConfiguration.dismissAlertButtonSelector,
-      FB_SETTING_DEFAULT_ALERT_ACTION: request.session?:FBSession.init
-        .defaultAlertAction ?: @"",
+      FB_SETTING_DEFAULT_ALERT_ACTION: request.session.defaultAlertAction ?: @"",
 #if !TARGET_OS_TV
       FB_SETTING_SCREENSHOT_ORIENTATION: [FBConfiguration humanReadableScreenshotOrientation],
 #endif
@@ -402,7 +399,7 @@
     [FBConfiguration setAnimationCoolOffTimeout:[[settings objectForKey:FB_SETTING_ANIMATION_COOL_OFF_TIMEOUT] doubleValue]];
   }
   if ([[settings objectForKey:FB_SETTING_DEFAULT_ALERT_ACTION] isKindOfClass:NSString.class]) {
-      request.session.defaultAlertAction = [settings[FB_SETTING_DEFAULT_ALERT_ACTION] lowercaseString];
+    request.session.defaultAlertAction = [settings[FB_SETTING_DEFAULT_ALERT_ACTION] lowercaseString];
   }
 
 #if !TARGET_OS_TV
@@ -410,10 +407,9 @@
     NSError *error;
     if (![FBConfiguration setScreenshotOrientation:(NSString *)[settings objectForKey:FB_SETTING_SCREENSHOT_ORIENTATION]
                                              error:&error]) {
-      return FBResponseWithStatus([FBCommandStatus invalidArgumentErrorWithMessage:error.description traceback:nil]);
+      return FBResponseWithStatus([FBCommandStatus invalidArgumentErrorWithMessage:error.description
+                                                                         traceback:nil]);
     }
-
-
   }
 #endif
 
@@ -442,7 +438,7 @@
 
 + (NSDictionary *)currentCapabilities
 {
-  FBApplication *application = [FBSession activeSession].activeApplication?: FBApplication.fb_activeApplication;
+  FBApplication *application = [FBSession activeSession].activeApplication;
   return
   @{
     @"device": ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) ? @"ipad" : @"iphone",

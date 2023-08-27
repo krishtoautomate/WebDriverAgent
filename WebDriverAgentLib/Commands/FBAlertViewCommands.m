@@ -50,12 +50,11 @@
 + (id<FBResponsePayload>)handleAlertSetTextCommand:(FBRouteRequest *)request
 {
   FBSession *session = request.session;
-  id value = request.arguments[@"value"] ?: request.arguments[@"text"];
-//  request.arguments[@"value"];
+  id value = request.arguments[@"value"];
   if (!value) {
     return FBResponseWithStatus([FBCommandStatus invalidArgumentErrorWithMessage:@"Missing 'value' parameter" traceback:nil]);
   }
-  FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication?: FBApplication.fb_activeApplication];
+  FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication];
   if (!alert.isPresent) {
     return FBResponseWithStatus([FBCommandStatus noAlertOpenErrorWithMessage:nil
                                                                    traceback:nil]);
@@ -119,8 +118,8 @@
 }
 
 + (id<FBResponsePayload>)handleGetAlertButtonsCommand:(FBRouteRequest *)request {
-  FBSession *session = request.session?:FBSession.init;//added
-  FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication?: FBApplication.fb_activeApplication];
+  FBSession *session = request.session;
+  FBAlert *alert = [FBAlert alertWithApplication:session.activeApplication];
 
   if (!alert.isPresent) {
     return FBResponseWithStatus([FBCommandStatus noAlertOpenErrorWithMessage:nil
