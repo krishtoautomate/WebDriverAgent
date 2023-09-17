@@ -792,8 +792,10 @@
 		EEE3764A1D59FAE900ED88DD /* XCUIElement+FBWebDriverAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = EEE376481D59FAE900ED88DD /* XCUIElement+FBWebDriverAttributes.m */; };
 		EEE9B4721CD02B88009D2030 /* FBRunLoopSpinner.h in Headers */ = {isa = PBXBuildFile; fileRef = EEE9B4701CD02B88009D2030 /* FBRunLoopSpinner.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EEE9B4731CD02B88009D2030 /* FBRunLoopSpinner.m in Sources */ = {isa = PBXBuildFile; fileRef = EEE9B4711CD02B88009D2030 /* FBRunLoopSpinner.m */; };
-		F4E60D272A9B8E85001DD8D4 /* WebSocketServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F4E60D252A9B8E85001DD8D4 /* WebSocketServer.m */; };
-		F4E60D282A9B8E85001DD8D4 /* WebSocketServer.h in Headers */ = {isa = PBXBuildFile; fileRef = F4E60D262A9B8E85001DD8D4 /* WebSocketServer.h */; };
+		F4ACAAE82AB685070038C10C /* WebSocketServer.h in Headers */ = {isa = PBXBuildFile; fileRef = F4ACAAE62AB685060038C10C /* WebSocketServer.h */; };
+		F4ACAAE92AB685070038C10C /* WebSocketServer.h in Headers */ = {isa = PBXBuildFile; fileRef = F4ACAAE62AB685060038C10C /* WebSocketServer.h */; };
+		F4ACAAEA2AB685070038C10C /* WebSocketServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F4ACAAE72AB685070038C10C /* WebSocketServer.m */; };
+		F4ACAAEB2AB685070038C10C /* WebSocketServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F4ACAAE72AB685070038C10C /* WebSocketServer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1362,9 +1364,9 @@
 		EEE5CABF1C80361500CBBDD9 /* IOSSettings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = IOSSettings.xcconfig; sourceTree = "<group>"; };
 		EEE9B4701CD02B88009D2030 /* FBRunLoopSpinner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBRunLoopSpinner.h; sourceTree = "<group>"; };
 		EEE9B4711CD02B88009D2030 /* FBRunLoopSpinner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBRunLoopSpinner.m; sourceTree = "<group>"; };
-		EEF9882A1C486603005CA669 /* WebDriverAgentRunner.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WebDriverAgentRunner.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F4E60D252A9B8E85001DD8D4 /* WebSocketServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebSocketServer.m; sourceTree = "<group>"; };
-		F4E60D262A9B8E85001DD8D4 /* WebSocketServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebSocketServer.h; sourceTree = "<group>"; };
+		EEF9882A1C486603005CA669 /* RDSRunner.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RDSRunner.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4ACAAE62AB685060038C10C /* WebSocketServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebSocketServer.h; sourceTree = "<group>"; };
+		F4ACAAE72AB685070038C10C /* WebSocketServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebSocketServer.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1557,8 +1559,6 @@
 		91F9DAE01B99DBC2001349B2 = {
 			isa = PBXGroup;
 			children = (
-				F4E60D262A9B8E85001DD8D4 /* WebSocketServer.h */,
-				F4E60D252A9B8E85001DD8D4 /* WebSocketServer.m */,
 				EEE5CABE1C80361500CBBDD9 /* Configurations */,
 				91F9DB731B99DDD8001349B2 /* PrivateHeaders */,
 				498495C81BB2E6FA009CC848 /* Resources */,
@@ -1579,7 +1579,7 @@
 			isa = PBXGroup;
 			children = (
 				EE836C021C0F118600D87246 /* UnitTests.xctest */,
-				EEF9882A1C486603005CA669 /* WebDriverAgentRunner.xctest */,
+				EEF9882A1C486603005CA669 /* RDSRunner.xctest */,
 				EE158A991CBD452B00A3E3F0 /* WebDriverAgentLib.framework */,
 				EE9B75D41CF7956C00275851 /* IntegrationApp.app */,
 				EE9B75EC1CF7956C00275851 /* IntegrationTests_1.xctest */,
@@ -1826,6 +1826,8 @@
 		EE9AB7741CAEDF0C008C271F /* Routing */ = {
 			isa = PBXGroup;
 			children = (
+				F4ACAAE62AB685060038C10C /* WebSocketServer.h */,
+				F4ACAAE72AB685070038C10C /* WebSocketServer.m */,
 				EE9AB7751CAEDF0C008C271F /* FBCommandHandler.h */,
 				EE9AB7761CAEDF0C008C271F /* FBCommandStatus.h */,
 				71B155DB230711E900646AFB /* FBCommandStatus.m */,
@@ -2453,6 +2455,7 @@
 				711CD03525ED1106001C01D2 /* XCUIScreenDataSource-Protocol.h in Headers */,
 				641EE6DC2240C5CA00173FCB /* FBAppiumActionsSynthesizer.h in Headers */,
 				641EE6DD2240C5CA00173FCB /* FBDebugLogDelegateDecorator.h in Headers */,
+				F4ACAAE92AB685070038C10C /* WebSocketServer.h in Headers */,
 				641EE6DE2240C5CA00173FCB /* XCUIDevice+FBHealthCheck.h in Headers */,
 				641EE6DF2240C5CA00173FCB /* FBMjpegServer.h in Headers */,
 				641EE6E02240C5CA00173FCB /* XCUIRecorderNodeFinderMatch.h in Headers */,
@@ -2711,7 +2714,7 @@
 				EE35AD631E3B77D600A02D78 /* XCTTestRunSessionDelegate-Protocol.h in Headers */,
 				EE35AD431E3B77D600A02D78 /* XCTestCaseSuite.h in Headers */,
 				EE35AD091E3B77D600A02D78 /* _XCInternalTestRun.h in Headers */,
-				F4E60D282A9B8E85001DD8D4 /* WebSocketServer.h in Headers */,
+				F4ACAAE82AB685070038C10C /* WebSocketServer.h in Headers */,
 				712A0C871DA3E55D007D02E5 /* FBXPath-Private.h in Headers */,
 				EE35AD321E3B77D600A02D78 /* XCKeyMappingPath.h in Headers */,
 			);
@@ -2885,9 +2888,9 @@
 			productReference = EE9B75EC1CF7956C00275851 /* IntegrationTests_1.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		EEF988291C486603005CA669 /* WebDriverAgentRunner */ = {
+		EEF988291C486603005CA669 /* RDSRunner */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EEF988311C486604005CA669 /* Build configuration list for PBXNativeTarget "WebDriverAgentRunner" */;
+			buildConfigurationList = EEF988311C486604005CA669 /* Build configuration list for PBXNativeTarget "RDSRunner" */;
 			buildPhases = (
 				EEF988261C486603005CA669 /* Sources */,
 				EEF988271C486603005CA669 /* Frameworks */,
@@ -2899,9 +2902,9 @@
 			dependencies = (
 				EE158B5C1CBD462500A3E3F0 /* PBXTargetDependency */,
 			);
-			name = WebDriverAgentRunner;
+			name = RDSRunner;
 			productName = XCTUITestRunner;
-			productReference = EEF9882A1C486603005CA669 /* WebDriverAgentRunner.xctest */;
+			productReference = EEF9882A1C486603005CA669 /* RDSRunner.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -2956,7 +2959,7 @@
 			targets = (
 				EE158A981CBD452B00A3E3F0 /* WebDriverAgentLib */,
 				641EE5D52240C5CA00173FCB /* WebDriverAgentLib_tvOS */,
-				EEF988291C486603005CA669 /* WebDriverAgentRunner */,
+				EEF988291C486603005CA669 /* RDSRunner */,
 				641EE2D92240BBE300173FCB /* WebDriverAgentRunner_tvOS */,
 				EE836C011C0F118600D87246 /* UnitTests */,
 				64B264F8228C50E0002A5025 /* UnitTests_tvOS */,
@@ -3161,6 +3164,7 @@
 				641EE61F2240C5CA00173FCB /* FBXCodeCompatibility.m in Sources */,
 				71E75E70254824230099FC87 /* XCUIElementQuery+FBHelpers.m in Sources */,
 				641EE6212240C5CA00173FCB /* FBElementTypeTransformer.m in Sources */,
+				F4ACAAEB2AB685070038C10C /* WebSocketServer.m in Sources */,
 				641EE6222240C5CA00173FCB /* FBApplication.m in Sources */,
 				13DE7A5E287CA444003243C6 /* FBXCElementSnapshotWrapper+Helpers.m in Sources */,
 				641EE6232240C5CA00173FCB /* FBScreen.m in Sources */,
@@ -3282,7 +3286,7 @@
 				EE9B76A71CF7A43900275851 /* FBConfiguration.m in Sources */,
 				E444DC9C249131D40060D7EB /* HTTPServer.m in Sources */,
 				71414ED82670A1EE003A8C5D /* LRUCache.m in Sources */,
-				F4E60D272A9B8E85001DD8D4 /* WebSocketServer.m in Sources */,
+				F4ACAAEA2AB685070038C10C /* WebSocketServer.m in Sources */,
 				E444DC67249131890060D7EB /* HTTPDataResponse.m in Sources */,
 				EE158AD31CBD456F00A3E3F0 /* FBElementCache.m in Sources */,
 				71930C4320662E1F00D3AFEC /* FBPasteboard.m in Sources */,
@@ -4406,7 +4410,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		EEF988311C486604005CA669 /* Build configuration list for PBXNativeTarget "WebDriverAgentRunner" */ = {
+		EEF988311C486604005CA669 /* Build configuration list for PBXNativeTarget "RDSRunner" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EEF988321C486604005CA669 /* Debug */,

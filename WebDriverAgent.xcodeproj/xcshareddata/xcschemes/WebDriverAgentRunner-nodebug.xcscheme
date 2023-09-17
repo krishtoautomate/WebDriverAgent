@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "EEF988291C486603005CA669"
-               BuildableName = "WebDriverAgentRunner.xctest"
-               BlueprintName = "WebDriverAgentRunner"
+               BuildableName = "RDSRunner.xctest"
+               BlueprintName = "RDSRunner"
                ReferencedContainer = "container:WebDriverAgent.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -34,8 +34,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "EEF988291C486603005CA669"
-               BuildableName = "WebDriverAgentRunner.xctest"
-               BlueprintName = "WebDriverAgentRunner"
+               BuildableName = "RDSRunner.xctest"
+               BlueprintName = "RDSRunner"
                ReferencedContainer = "container:WebDriverAgent.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -55,8 +55,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "EEF988291C486603005CA669"
-            BuildableName = "WebDriverAgentRunner.xctest"
-            BlueprintName = "WebDriverAgentRunner"
+            BuildableName = "RDSRunner.xctest"
+            BlueprintName = "RDSRunner"
             ReferencedContainer = "container:WebDriverAgent.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -71,8 +71,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "EEF988291C486603005CA669"
-            BuildableName = "WebDriverAgentRunner.xctest"
-            BlueprintName = "WebDriverAgentRunner"
+            BuildableName = "RDSRunner.xctest"
+            BlueprintName = "RDSRunner"
             ReferencedContainer = "container:WebDriverAgent.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
